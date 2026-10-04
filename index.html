@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPKL Terpadu - SMK Ma'arif Semanu</title>
+    
+    <!-- Pustaka Eksternal -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .hide { display: none !important; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .a4-paper {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin: 0 auto;
+            padding: 20mm;
+            font-family: serif;
+            color: black;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 overflow-hidden h-screen flex print:bg-white print:overflow-visible">
+
+    <div id="login-view" class="fixed inset-0 bg-slate-50 flex items-center justify-center p-4 sm:p-8 z-[100]">
+        <div class="bg-white p-8 sm:p-12 md:p-14 rounded-3xl shadow-2xl w-full max-w-lg md:max-w-xl border border-slate-100 transition-all">
+            <div class="flex flex-col items-center mb-8 sm:mb-10">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 bg-indigo-600 rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-xl shadow-indigo-200">
+                    <i data-feather="book-open" class="text-white w-8 h-8 sm:w-10 sm:h-10"></i>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 text-center">SIPKL Terpadu</h1>
+                <p class="text-sm sm:text-base font-semibold text-indigo-600 mt-1 text-center">SMK Ma'arif Semanu</p>
+                <p class="text-sm sm:text-base text-slate-500 mt-1 text-center">Sistem Informasi Praktik Kerja Lapangan</p>
+            </div>
+            
+            <div id="login-error" class="hide bg-red-50 text-red-600 p-4 rounded-xl text-sm mb-6 flex items-center border border-red-100">
+                <i data-feather="alert-circle" class="w-5 h-5 mr-2 shrink-0"></i> <span id="login-error-msg"></span>
+            </div>
+
+            <form id="login-form" class="space-y-6 sm:space-y-7">
+                <div>
+                    <label class="block text-sm sm:text-base font-semibold text-slate-700 mb-2">Username / NIS / NIP</label>
+                    <div class="relative">
+                        <i data-feather="user" class="w-5 h-5 sm:w-6 sm:h-6 absolute left-4 top-3.5 sm:top-4 text-slate-400"></i>
+                        <input type="text" id="login-username" class="w-full pl-12 pr-4 py-3 sm:py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 focus:bg-white transition-all text-sm sm:text-base" placeholder="Masukkan username" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm sm:text-base font-semibold text-slate-700 mb-2">Password</label>
+                    <div class="relative">
+                        <i data-feather="lock" class="w-5 h-5 sm:w-6 sm:h-6 absolute left-4 top-3.5 sm:top-4 text-slate-400"></i>
+                        <input type="password" id="login-password" class="w-full pl-12 pr-12 py-3 sm:py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 focus:bg-white transition-all text-sm sm:text-base" placeholder="••••••••" required>
+                        <button type="button" id="toggle-password" class="absolute right-4 top-3.5 sm:top-4 text-slate-400 hover:text-slate-600 focus:outline-none">
+                            <i data-feather="eye" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base sm:text-lg py-3.5 sm:py-4 rounded-xl transition-all shadow-lg shadow-indigo-200 mt-2">
+                    Masuk Sistem
+                </button>
+            </form>
+            <div class="mt-8 sm:mt-10 text-center border-t border-slate-100 pt-6">
+                <p class="text-xs sm:text-sm font-semibold text-slate-500">Versi 2.1.0 (Build 2026)</p>
+                <p class="text-[10px] sm:text-xs text-slate-400 mt-1.5">Support by <i>Secangkir Kopi</i></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" class="hide flex-1 flex h-screen w-full relative">
+        <div id="mobile-overlay" class="hide fixed inset-0 bg-slate-900/50 z-20 backdrop-blur-sm transition-opacity print:hidden"></div>
+
+        <aside id="sidebar" class="print:hidden fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 text-slate-300 transition-transform duration-300 ease-in-out flex flex-col -translate-x-full md:relative md:translate-x-0">
+            <div class="flex items-center justify-between h-16 px-6 bg-slate-950/50 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center"><i data-feather="book-open" class="w-4 h-4 text-white"></i></div>
+                    <span class="font-bold text-white text-lg tracking-wide">SIPKL</span>
+                </div>
+                <button id="close-sidebar" class="md:hidden text-slate-400 hover:text-white focus:outline-none"><i data-feather="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="p-4 border-b border-slate-800">
+                <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Profil Pengguna</p>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700"><i data-feather="user" class="w-5 h-5 text-indigo-400"></i></div>
+                    <div class="overflow-hidden">
+                        <p id="user-display-name" class="text-sm font-medium text-white truncate">Nama</p>
+                        <p id="user-display-role" class="text-xs text-indigo-400 truncate">Role</p>
+                    </div>
+                </div>
+                <select id="role-switcher" class="hide w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-md px-2 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500" onchange="switchRole(this.value)"></select>
+            </div>
+
+            <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-thin"></nav>
+
+            <div class="p-4 border-t border-slate-800">
+                <button id="btn-logout" class="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-lg transition-colors border border-transparent hover:border-red-900/50">
+                    <i data-feather="log-out" class="w-4 h-4"></i> Keluar
+                </button>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-hidden transition-all duration-300 print:overflow-visible relative w-full min-w-0">
+            <header class="print:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-10 shadow-sm shrink-0">
+                <div class="flex items-center gap-4">
+                    <button id="toggle-sidebar" class="p-2 text-slate-500 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 rounded-lg transition-all focus:outline-none border border-slate-200 shadow-sm">
+                        <i data-feather="menu" class="w-5 h-5"></i>
+                    </button>
+                    <div id="header-brand" class="hidden items-center gap-2.5">
+                        <div class="w-7 h-7 bg-indigo-600 rounded flex items-center justify-center shadow-sm"><i data-feather="book-open" class="w-3.5 h-3.5 text-white"></i></div>
+                        <span class="font-bold text-slate-800 tracking-wide text-sm sm:text-base">SIPKL</span>
+                    </div>
+                    <h1 id="header-title" class="text-lg font-semibold text-slate-800 hidden sm:block">Dashboard</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="current-date-display" class="text-sm text-slate-500 hidden md:block">Tanggal</span>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/50 p-4 sm:p-6 md:p-8 print:p-0 print:overflow-visible print:bg-white relative">
+                <div class="max-w-7xl mx-auto print:max-w-none print:w-full">
+                    
+                    <section id="sec-dashboard" class="space-y-6 fade-in">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Selamat Datang, <span id="dash-name">User</span></h2>
+                                <p class="text-slate-500 text-sm mt-1">Sistem Informasi PKL Terpadu - SMK Ma'arif Semanu</p>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Admin -->
+                        <div id="dash-admin" class="hide space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4"><div class="bg-blue-500 w-12 h-12 rounded-lg flex items-center justify-center text-white shrink-0"><i data-feather="users"></i></div><div><p class="text-sm font-medium text-slate-500">Total Siswa PKL</p><h3 class="text-2xl font-bold text-slate-800">145</h3></div></div>
+                                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4"><div class="bg-emerald-500 w-12 h-12 rounded-lg flex items-center justify-center text-white shrink-0"><i data-feather="briefcase"></i></div><div><p class="text-sm font-medium text-slate-500">Mitra DUDI</p><h3 class="text-2xl font-bold text-slate-800">32</h3></div></div>
+                                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4"><div class="bg-amber-500 w-12 h-12 rounded-lg flex items-center justify-center text-white shrink-0"><i data-feather="file-text"></i></div><div><p class="text-sm font-medium text-slate-500">Jurnal Menunggu</p><h3 class="text-2xl font-bold text-slate-800">12</h3></div></div>
+                                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4"><div class="bg-indigo-500 w-12 h-12 rounded-lg flex items-center justify-center text-white shrink-0"><i data-feather="check-circle"></i></div><div><p class="text-sm font-medium text-slate-500">Presensi Hari Ini</p><h3 class="text-2xl font-bold text-slate-800">98%</h3></div></div>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i data-feather="book-open" class="w-5 h-5 text-indigo-500"></i> Persentase Penyelesaian Laporan Akhir (Per Jurusan)</h3>
+                                <div id="admin-prog-jurusan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-2 bg-white p-6 rounded-xl border shadow-sm h-[400px] flex flex-col">
+                                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2 shrink-0"><i data-feather="activity" class="text-indigo-500 w-5 h-5"></i> Kehadiran PKL Global</h3>
+                                    <div class="flex-1 min-h-0 relative w-full h-full"><canvas id="chart-admin-bar"></canvas></div>
+                                </div>
+                                <div class="bg-white p-6 rounded-xl border shadow-sm flex flex-col h-[400px]">
+                                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2 shrink-0 border-b pb-3 border-slate-100"><i data-feather="clock" class="text-emerald-500 w-5 h-5"></i> Histori Aktivitas Global</h3>
+                                    <div id="admin-timeline" class="flex-1 overflow-y-auto pr-3 space-y-5 scrollbar-thin"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Siswa -->
+                        <div id="dash-siswa" class="hide space-y-6">
+                            <div class="bg-white p-5 rounded-xl border shadow-sm flex items-center justify-between gap-6">
+                                <div class="flex items-center gap-4"><div class="w-14 h-14 rounded-full flex items-center justify-center bg-indigo-50 border border-indigo-200 shrink-0"><i data-feather="file-text" class="text-indigo-600"></i></div><div><h3 class="text-lg font-bold">Progres Laporan Akhir</h3><p class="text-sm text-slate-500">Status: <span id="siswa-lap-text" class="font-semibold text-indigo-600"></span></p></div></div>
+                                <div class="w-1/2 flex items-center gap-4 bg-slate-50 p-3 rounded-lg"><div class="flex-1 h-3 bg-slate-200 rounded-full"><div id="siswa-lap-bar" class="h-full bg-indigo-500"></div></div><span id="siswa-lap-pct" class="text-sm font-bold"></span></div>
+                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-2 bg-white p-6 rounded-xl border shadow-sm h-[400px] flex flex-col"><h3 class="text-lg font-bold mb-4 flex items-center gap-2 shrink-0"><i data-feather="activity" class="text-indigo-500"></i> Akumulasi Kehadiran</h3><div class="flex-1 min-h-0 relative w-full h-full"><canvas id="chart-siswa-bar"></canvas></div></div>
+                                <div class="bg-white p-6 rounded-xl border shadow-sm h-[400px] flex flex-col"><h3 class="text-lg font-bold mb-4 flex items-center gap-2 shrink-0 border-b pb-3"><i data-feather="clock" class="text-emerald-500"></i> Aktivitas Terakhir</h3><div id="siswa-timeline" class="flex-1 overflow-y-auto space-y-5 scrollbar-thin"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Guru -->
+                        <div id="dash-guru" class="hide space-y-6">
+                            <div><h3 class="text-lg font-bold mb-3 flex items-center gap-2"><i data-feather="map-pin" class="text-indigo-500"></i> Agenda Monitoring</h3><div id="guru-monitoring-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div></div>
+                            <div class="bg-white p-5 rounded-xl border shadow-sm"><h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-feather="book-open" class="text-indigo-500"></i> Pantauan Laporan Anak Bimbingan</h3><div id="guru-prog-laporan" class="flex overflow-x-auto gap-4 pb-2 snap-x scrollbar-thin"></div></div>
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-2 bg-white p-6 rounded-xl border shadow-sm h-[400px] flex flex-col"><h3 class="text-lg font-bold mb-4 flex items-center gap-2 shrink-0"><i data-feather="activity" class="text-indigo-500"></i> Statistik Kehadiran Bimbingan</h3><div class="flex-1 min-h-0 relative w-full h-full"><canvas id="chart-guru-bar"></canvas></div></div>
+                                <div class="bg-white p-6 rounded-xl border shadow-sm h-[400px] flex flex-col"><h3 class="text-lg font-bold mb-4 flex items-center gap-2 shrink-0 border-b pb-3"><i data-feather="clock" class="text-emerald-500"></i> Aktivitas Bimbingan</h3><div id="guru-timeline" class="flex-1 overflow-y-auto space-y-5 scrollbar-thin"></div></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="sec-jadwal_monitoring" class="hide space-y-6 fade-in">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div><h2 class="text-2xl font-bold">Jadwal Monitoring DUDI</h2><p class="text-slate-500 text-sm">Perencanaan kunjungan pembimbing.</p></div>
+                            <div class="flex gap-2">
+                                <button id="btn-add-serentak" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm"><i data-feather="calendar" class="w-4 h-4 mr-2"></i> Jadwal Serentak</button>
+                                <button id="btn-add-jadwal" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm"><i data-feather="plus" class="w-4 h-4 mr-2"></i> Buat Jadwal</button>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 border-b"><tr><th class="px-4 py-3 text-center w-12">No</th><th class="px-4 py-3">Tanggal / Mitra DUDI</th><th class="px-4 py-3 guru-col">Guru Pembimbing</th><th class="px-4 py-3">Agenda</th><th class="px-4 py-3">Catatan Lapangan</th><th class="px-4 py-3 text-center">Status</th><th class="px-4 py-3 text-center aksi-col">Aksi</th></tr></thead><tbody id="tbody-jadwal" class="divide-y text-slate-700"></tbody></table></div>
+                        </div>
+                    </section>
+
+                    <section id="sec-master_siswa" class="hide space-y-6 fade-in">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div><h2 class="text-2xl font-bold">Master Data Siswa</h2><p class="text-slate-500 text-sm">Kelola data peserta PKL.</p></div>
+                            <div class="flex items-center gap-3">
+                                <div class="relative"><i data-feather="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i><input type="text" id="search-siswa" placeholder="Cari NIS/Nama..." class="pl-9 pr-4 py-2 border rounded-lg outline-none text-sm w-48"></div>
+                                <button id="btn-import-siswa" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm"><i data-feather="upload" class="w-4 h-4 mr-2"></i> Import</button>
+                                <button id="btn-add-siswa" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm"><i data-feather="plus" class="w-4 h-4 mr-2"></i> Tambah</button>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 border-b"><tr></tr></thead><tbody id="tbody-siswa" class="divide-y text-slate-700"></tbody></table></div>
+                        </div>
+                    </section>
+
+                    <section id="sec-presensi" class="hide space-y-6 fade-in">
+                        <div><h2 class="text-2xl font-bold">Presensi Harian</h2><p class="text-slate-500 text-sm">Rekam kehadiran atau ajukan izin.</p></div>
+                        <div class="flex bg-slate-200 p-1 rounded-xl w-full max-w-md">
+                            <button id="tab-btn-hadir" class="flex-1 py-2 text-sm font-bold rounded-lg flex items-center justify-center gap-2" onclick="switchPresensiTab('hadir')"><i data-feather="camera" class="w-4 h-4"></i> Hadir</button>
+                            <button id="tab-btn-izin" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 flex items-center justify-center gap-2" onclick="switchPresensiTab('izin')"><i data-feather="file-text" class="w-4 h-4"></i> Izin / Sakit</button>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-1 space-y-4">
+                                <div id="tab-content-hadir" class="bg-white p-5 rounded-xl border shadow-sm text-center">
+                                    <div class="w-full aspect-square bg-slate-100 rounded-lg overflow-hidden border-2 border-dashed relative mb-4 flex items-center justify-center">
+                                        <div id="cam-placeholder" class="text-slate-400"><i data-feather="camera" class="w-12 h-12 mx-auto mb-2 opacity-50"></i><p class="text-sm font-medium">Kamera Mati</p></div>
+                                        <video id="presensi-video" class="hide w-full h-full object-cover" autoplay playsinline></video>
+                                        <img id="presensi-photo-preview" class="hide w-full h-full object-cover">
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded-lg border mb-4 text-left"><p class="text-sm font-semibold flex items-center gap-2"><i data-feather="navigation" class="w-4 h-4 text-emerald-500"></i> GPS Lokasi:</p><p id="gps-text" class="text-xs font-mono text-emerald-600 bg-emerald-50 p-1.5 rounded border mt-2 text-center">Menunggu...</p></div>
+                                    <div class="space-y-2">
+                                        <button id="btn-start-cam" class="w-full bg-indigo-600 text-white font-medium py-2.5 rounded-lg">Mulai Kamera</button>
+                                        <button id="btn-capture" class="hide w-full bg-amber-500 text-white font-medium py-2.5 rounded-lg">Ambil Foto</button>
+                                        <button id="btn-submit-hadir" class="hide w-full bg-emerald-600 text-white font-medium py-2.5 rounded-lg mb-2">Simpan Kehadiran</button>
+                                        <button id="btn-retake" class="hide w-full bg-slate-100 text-slate-700 font-medium py-2.5 rounded-lg">Ulangi</button>
+                                    </div>
+                                </div>
+                                <div id="tab-content-izin" class="hide bg-white p-5 rounded-xl border shadow-sm">
+                                    <form id="form-izin" class="space-y-4">
+                                        <div><label class="block text-sm font-medium mb-1">Jenis</label><select id="izin-tipe" class="w-full px-3 py-2 border rounded-lg outline-none text-sm"><option value="Sakit">Sakit</option><option value="Izin">Izin</option></select></div>
+                                        <div><label class="block text-sm font-medium mb-1">Alasan</label><textarea id="izin-alasan" required rows="3" class="w-full px-3 py-2 border rounded-lg outline-none text-sm"></textarea></div>
+                                        <button type="submit" class="w-full bg-indigo-600 text-white font-medium py-2.5 rounded-lg">Ajukan & Hubungi Wali</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-2 bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
+                                <div class="px-6 py-4 border-b bg-slate-50"><h3 class="font-bold flex items-center gap-2"><i data-feather="clock" class="w-4 h-4 text-indigo-500"></i> Riwayat Kehadiran Anda</h3></div>
+                                <div class="overflow-x-auto flex-1"><table class="w-full text-sm text-left"><thead class="bg-white border-b"><tr><th class="px-6 py-4">Waktu</th><th class="px-6 py-4">Lokasi/Keterangan</th><th class="px-6 py-4 text-center">Status</th></tr></thead><tbody id="tbody-riwayat-presensi" class="divide-y"></tbody></table></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="sec-data_absensi" class="hide space-y-6 fade-in">
+                        <div class="print:hidden"><h2 class="text-2xl font-bold">Data Presensi Siswa</h2><p class="text-slate-500 text-sm">Pemantauan kehadiran & validasi ALFA.</p></div>
+                        
+                        <div id="wali-approval-panel" class="hide bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm">
+                            <h3 class="text-amber-800 font-bold mb-3 flex items-center gap-2"><i data-feather="bell" class="w-5 h-5"></i> Antrean Validasi Izin/Sakit (<span id="wali-approval-count"></span>)</h3>
+                            <div id="wali-approval-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border overflow-hidden print:border-none print:shadow-none">
+                            <div class="p-4 border-b bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4 print:hidden">
+                                <div class="flex items-center gap-3 w-full md:w-auto"><input type="date" id="filter-date-absensi" class="w-full md:w-auto px-3 py-2 border rounded-lg text-sm"></div>
+                                <div class="flex items-center gap-3 w-full md:w-auto">
+                                    <div class="relative flex-1 md:w-48"><i data-feather="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i><input type="text" id="search-absensi" placeholder="Cari..." class="w-full pl-9 pr-3 py-2 border rounded-lg text-sm"></div>
+                                    <select id="filter-status-absensi" class="px-3 py-2 border rounded-lg text-sm outline-none"><option value="">Semua Status</option><option value="Hadir">Hadir</option><option value="Alpa">Alpa</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option></select>
+                                    <button id="btn-export-pdf-absensi" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm flex items-center shrink-0"><i data-feather="printer" class="w-4 h-4 mr-2"></i><span id="txt-export-absensi">Cetak PDF</span></button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 border-b"><tr><th class="px-4 py-3 text-center">No</th><th class="px-4 py-3">Siswa</th><th class="px-4 py-3">Kelas</th><th class="px-4 py-3">DUDI</th><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Lokasi (GPS)</th><th class="px-4 py-3 text-center">Status</th></tr></thead><tbody id="tbody-data-absensi" class="divide-y text-slate-700"></tbody></table></div>
+                        </div>
+                    </section>
+
+                    <section id="sec-tugas_jurnal" class="hide space-y-6 fade-in">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div><h2 class="text-2xl font-bold">Jurnal Harian PKL</h2><p class="text-slate-500 text-sm">Laporan aktivitas kompetensi.</p></div>
+                            <div class="flex items-center gap-2">
+                                <button id="btn-add-jurnal-show" onclick="show($('form-add-jurnal-container'))" class="hide bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm"><i data-feather="plus" class="w-4 h-4 mr-2"></i> Tambah Jurnal</button>
+                            </div>
+                        </div>
+                        <div id="form-add-jurnal-container" class="hide bg-white p-6 rounded-xl border mb-6 fade-in">
+                            <h3 class="font-bold mb-4 flex items-center gap-2"><i data-feather="edit-3" class="w-5 h-5 text-indigo-500"></i> Isi Jurnal Hari Ini</h3>
+                            <form id="form-add-jurnal" class="space-y-4">
+                                <div><textarea id="input-kegiatan-jurnal" required rows="4" placeholder="Ketik uraian kegiatan/pekerjaan yang Anda lakukan hari ini..." class="w-full px-4 py-3 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white"></textarea></div>
+                                <div class="flex justify-end gap-2"><button type="button" onclick="hide($('form-add-jurnal-container'))" class="px-4 py-2 text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium">Batal</button><button type="submit" class="px-6 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm rounded-lg">Simpan Jurnal</button></div>
+                            </form>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div class="p-4 border-b bg-slate-50 flex justify-between items-center gap-4">
+                                <input type="date" id="filter-date-jurnal" class="px-3 py-2 border rounded-lg text-sm">
+                                <div class="flex gap-2"><div class="relative"><i data-feather="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i><input type="text" id="search-jurnal" placeholder="Cari..." class="pl-9 pr-3 py-2 border rounded-lg text-sm"></div></div>
+                            </div>
+                            <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-white border-b"><tr><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3 siswa-col">Siswa</th><th class="px-4 py-3">Kelas</th><th class="px-4 py-3">Mitra DUDI</th><th class="px-4 py-3">Kegiatan</th><th class="px-4 py-3 text-center">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr></thead><tbody id="tbody-jurnal" class="divide-y text-slate-700"></tbody></table></div>
+                        </div>
+                    </section>
+
+                    <!-- Modul Tugas Laporan (Terkunci & 100 Karakter) -->
+                    <section id="sec-tugas_laporan" class="hide space-y-6 fade-in">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div><h2 class="text-2xl font-bold">Laporan PKL</h2><p class="text-slate-500 text-sm">Penyusunan & Validasi dokumen akhir.</p></div>
+                        </div>
+
+                        <div id="laporan-siswa-view" class="hide space-y-6">
+                            <div class="bg-white p-6 rounded-xl border shadow-sm flex flex-col md:flex-row items-center gap-6">
+                                <div class="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100"><i data-feather="book" class="w-8 h-8 text-indigo-600"></i></div>
+                                <div class="flex-1 w-full">
+                                    <div class="flex justify-between items-end mb-2">
+                                        <div><h3 class="font-bold text-lg">Progres Penyusunan Laporan</h3><p class="text-sm text-slate-500">Status: <span id="lap-siswa-status" class="font-semibold text-indigo-600">Proses Pengerjaan</span></p></div>
+                                        <div class="text-right"><span class="text-2xl font-bold text-indigo-600" id="lap-siswa-pct">0%</span></div>
+                                    </div>
+                                    <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border"><div id="lap-siswa-bar" class="h-full bg-indigo-500 transition-all duration-1000" style="width:0%"></div></div>
+                                </div>
+                                <div class="shrink-0 flex flex-col sm:flex-row gap-2">
+                                    <button onclick="cetakLaporanFinal(currentUser.nis)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm"><i data-feather="printer" class="w-4 h-4 mr-2"></i> Pratinjau PDF Final</button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="lap-siswa-chapters">
+                                <!-- Cards injected here -->
+                            </div>
+                        </div>
+
+                        <div id="laporan-guru-view" class="hide bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 border-b"><tr><th class="px-4 py-3 text-center">No</th><th class="px-4 py-3">Siswa</th><th class="px-4 py-3">DUDI</th><th class="px-4 py-3 text-center w-48">Progres Pengerjaan</th><th class="px-4 py-3 text-center">Status Global</th><th class="px-4 py-3 text-center">Aksi</th></tr></thead><tbody id="tbody-laporan" class="divide-y text-slate-700"></tbody></table></div>
+                        </div>
+                    </section>
+
+                    <section id="sec-dok_siswa" class="hide space-y-6 fade-in">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div><h2 class="text-2xl font-bold">Galeri Dokumentasi</h2><p class="text-slate-500 text-sm">Arsip bukti visual lapangan.</p></div>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <select id="filter-dok" class="px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white"><option value="">Semua Kategori</option><option value="Monitoring">Monitoring DUDI</option><option value="Kegiatan Siswa">Kegiatan Siswa</option></select>
+                                <div class="relative"><i data-feather="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i><input type="text" id="search-dok" placeholder="Cari foto..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white"></div>
+                            </div>
+                        </div>
+                        <div id="grid-dokumentasi" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                    </section>
+
+                    <section id="sec-pengaturan" class="hide space-y-6 fade-in">
+                        <div><h2 class="text-2xl font-bold">Pengaturan Sistem</h2><p class="text-slate-500 text-sm">Konfigurasi Hak Akses & API Integrasi.</p></div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <!-- Panel Pengaturan Laporan -->
+                            <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                                <div class="p-6 border-b bg-slate-50"><h3 class="font-bold flex items-center gap-2"><i data-feather="book" class="w-5 h-5 text-indigo-500"></i> Pengaturan Laporan PKL</h3></div>
+                                <div class="p-6 space-y-4">
+                                    <p class="text-sm text-slate-600 mb-2">Tentukan batas minimal jumlah karakter yang wajib diketik oleh siswa pada setiap kolom isian laporan (sebelum bisa diajukan).</p>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Minimal Karakter per Isian</label>
+                                        <div class="flex gap-2">
+                                            <input type="number" id="input-min-char" min="0" placeholder="100" class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 focus:bg-white transition-all">
+                                            <button onclick="saveLaporanSetting()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"><i data-feather="save" class="w-4 h-4 inline mr-1"></i> Simpan</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Panel Pengaturan API Gemini -->
+                            <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                                <div class="p-6 border-b bg-purple-50 flex items-center justify-between">
+                                    <h3 class="font-bold flex items-center gap-2 text-purple-900"><i data-feather="cpu" class="w-5 h-5 text-purple-600"></i> Integrasi Google Gemini AI</h3>
+                                    <span class="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded font-bold">BETA</span>
+                                </div>
+                                <div class="p-6 space-y-4">
+                                    <p class="text-sm text-slate-600 mb-2">Kunci API ini digunakan untuk menghidupkan fitur <b>Analisis Jurnal Otomatis</b>.</p>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Gemini API Key</label>
+                                        <div class="flex gap-2">
+                                            <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none bg-slate-50 focus:bg-white transition-all font-mono">
+                                            <button onclick="saveApiKey()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"><i data-feather="save" class="w-4 h-4 inline mr-1"></i> Simpan</button>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 mt-1">Dapatkan kunci API gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-purple-600 hover:underline">Google AI Studio</a>.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div class="p-6 border-b bg-slate-50"><h3 class="font-bold flex items-center gap-2"><i data-feather="settings" class="w-5 h-5 text-indigo-500"></i> Matriks Hak Akses (RBAC)</h3></div>
+                            <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead id="thead-rbac" class="bg-white border-b"></thead><tbody id="tbody-rbac" class="divide-y"></tbody></table></div>
+                            <div class="p-5 bg-slate-50 flex justify-end"><button onclick="savePengaturan()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-sm flex items-center transition-colors"><i data-feather="check" class="w-4 h-4 mr-2"></i> <span>Simpan Perubahan</span></button></div>
+                        </div>
+                    </section>
+                    
+                    <section id="sec-fallback" class="hide flex flex-col items-center justify-center h-64 text-slate-400">
+                        <i data-feather="settings" class="w-12 h-12 mb-4 opacity-50"></i>
+                        <p>Modul <span id="fallback-module-name" class="font-semibold text-slate-600"></span> sedang dalam pengembangan.</p>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-confirm" class="hide fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center fade-in">
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><i data-feather="alert-circle" class="w-6 h-6 text-red-600"></i></div>
+            <h3 id="modal-confirm-title" class="text-lg font-bold text-slate-800 mb-2">Konfirmasi</h3>
+            <p id="modal-confirm-msg" class="text-sm text-slate-500 mb-6">Pesan</p>
+            <div class="flex justify-center gap-3"><button onclick="closeConfirmModal()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Batal</button><button id="btn-confirm-action" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm">Ya, Lanjutkan</button></div>
+        </div>
+    </div>
+
+    <div id="modal-alert" class="hide fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center fade-in">
+            <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4"><i data-feather="check-circle" class="w-6 h-6 text-emerald-600"></i></div>
+            <h3 id="modal-alert-title" class="text-lg font-bold text-slate-800 mb-2">Sukses</h3>
+            <p id="modal-alert-msg" class="text-sm text-slate-500 mb-6">Pesan</p>
+            <button onclick="closeAlertModal()" class="px-6 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm">Mengerti</button>
+        </div>
+    </div>
+
+    <div id="modal-form" class="hide fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl border overflow-hidden fade-in flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b bg-slate-50 flex justify-between items-center shrink-0">
+                <h3 id="modal-form-title" class="font-bold flex items-center gap-2">Form</h3>
+                <button class="modal-close text-slate-400 hover:text-slate-600"><i data-feather="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="generic-form" class="flex flex-col flex-1 min-h-0">
+                <input type="hidden" id="modal-form-type"><input type="hidden" id="modal-form-id">
+                <div id="modal-form-body" class="p-6 space-y-4 overflow-y-auto"></div>
+                <div class="px-6 py-4 border-t bg-slate-50 flex justify-end gap-3 shrink-0">
+                    <button type="button" class="modal-close px-4 py-2 text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-edit-bab" class="hide fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl border overflow-hidden fade-in flex flex-col max-h-[95vh]">
+            <div class="px-6 py-4 border-b bg-slate-50 flex justify-between items-center shrink-0">
+                <h3 id="modal-edit-bab-title" class="font-bold flex items-center gap-2">Edit BAB</h3>
+                <button class="modal-close text-slate-400 hover:text-slate-600"><i data-feather="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="form-edit-bab" class="flex flex-col flex-1 min-h-0">
+                <input type="hidden" id="edit-bab-id">
+                <div id="modal-edit-bab-body" class="p-6 overflow-y-auto bg-slate-50/50">
+                    <!-- Fields dynamically injected -->
+                </div>
+                <div id="modal-edit-bab-footer" class="px-6 py-4 border-t bg-slate-50 flex justify-end gap-3 shrink-0">
+                    <!-- Buttons dynamically injected -->
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-view-jurnal" class="hide fixed inset-0 bg-slate-900/60 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden fade-in flex flex-col max-h-[95vh]">
+            <div class="px-6 py-4 border-b bg-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 z-10">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2"><i data-feather="printer" class="w-5 h-5 text-indigo-600"></i> Review Jurnal Kumulatif</h3>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button id="btn-export-pdf-jurnal" class="flex-1 sm:flex-none justify-center bg-white border text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center shadow-sm">
+                        <i data-feather="download" class="w-4 h-4 mr-1.5 text-indigo-600"></i> <span id="txt-pdf-jurnal">PDF</span>
+                    </button>
+                    <button class="modal-close bg-white p-1.5 rounded-lg border text-slate-500 hover:text-slate-800 shadow-sm"><i data-feather="x" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto bg-slate-300/40 p-4 sm:p-8 relative">
+                <div class="a4-paper relative text-sm">
+                    <div class="text-center pb-5 mb-8"><h2 class="text-lg font-bold leading-snug">JURNAL KEGIATAN PRAKTIK KERJA LAPANGAN<br/>SMK MA'ARIF SEMANU</h2><h3 class="font-bold mt-1">TAHUN PELAJARAN 2026/2027</h3></div>
+                    <div class="flex flex-col gap-y-2 mb-8 font-medium">
+                        <div class="flex"><span class="w-48">Nama Peserta Didik</span><span class="mr-2">:</span><span id="a4-nama"></span></div>
+                        <div class="flex"><span class="w-48">DUDI Tempat PKL</span><span class="mr-2">:</span><span id="a4-dudi"></span></div>
+                        <div class="flex"><span class="w-48">Nama Instruktur</span><span class="mr-2">:</span><span>-</span></div>
+                        <div class="flex"><span class="w-48">Nama Guru Pembimbing</span><span class="mr-2">:</span><span id="a4-guru"></span></div>
+                    </div>
+                    <table class="w-full border-collapse border border-black mb-8">
+                        <thead class="bg-slate-100"><tr><th class="border border-black py-2 px-2 w-10 text-center">No</th><th class="border border-black py-2 px-3 w-32 text-center">Hari, Tanggal</th><th class="border border-black py-2 px-3 text-center">Unit Kerja/Pekerjaan</th><th class="border border-black py-2 px-3 w-40 text-center">Catatan*</th></tr></thead>
+                        <tbody id="a4-tbody"></tbody>
+                    </table>
+                    <div class="mt-4"><p>Jurnal kegiatan disusun oleh peserta didik sebagai dokumen pekerjaan yang dilaksanakan</p><p>*) Catatan diberikan oleh pembimbing Dunia Kerja pada setiap kegiatan.</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-view-progres" class="hide fixed inset-0 bg-slate-900/60 z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden fade-in flex flex-col max-h-[85vh]">
+            <div class="px-6 py-4 border-b bg-slate-50 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2"><i data-feather="bar-chart-2" class="w-5 h-5 text-indigo-500"></i> Progres Siswa: <span id="title-prog-jurusan" class="text-indigo-600"></span></h3>
+                <button onclick="window.hide(window.$('modal-view-progres'))" class="text-slate-400 hover:text-slate-600 bg-white p-1 rounded-md border shadow-sm"><i data-feather="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="flex-1 overflow-auto"><table class="w-full text-sm text-left"><thead class="bg-white border-b sticky top-0 shadow-sm"><tr><th class="px-4 py-3 text-center w-12">No</th><th class="px-4 py-3">Nama Siswa / NIPD</th><th class="px-4 py-3">Lokasi DUDI</th><th class="px-4 py-3">Status File</th><th class="px-4 py-3">Progres</th></tr></thead><tbody id="tbody-prog-jurusan" class="divide-y text-slate-700 bg-slate-50/30"></tbody></table></div>
+        </div>
+    </div>
+
+    <div id="modal-view-dok" class="hide fixed inset-0 bg-slate-900/80 z-[70] flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden fade-in flex flex-col max-h-[90vh]">
+            <div class="relative bg-slate-100 flex items-center justify-center min-h-[250px] sm:min-h-[400px] shrink-0 border-b border-slate-200">
+                <img id="dok-detail-img" src="" class="max-h-[45vh] object-contain w-full" alt="Preview" />
+                <button class="modal-close-dok absolute top-4 right-4 bg-black/50 hover:bg-black text-white p-2 rounded-full backdrop-blur-md transition-colors shadow-lg"><i data-feather="x" class="w-5 h-5"></i></button>
+                <span id="dok-detail-type" class="absolute top-4 left-4 bg-indigo-600/90 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-full shadow-lg"></span>
+            </div>
+            <div class="p-5 sm:p-6 overflow-y-auto bg-slate-50 flex-1">
+                <h3 id="dok-detail-title" class="text-xl font-bold text-slate-800 mb-2">Judul</h3>
+                <div class="flex flex-wrap gap-4 text-xs font-semibold text-slate-500 mb-4 border-b border-slate-200 pb-4"><span class="flex items-center gap-1.5"><i data-feather="calendar" class="w-4 h-4 text-indigo-500"></i> <span id="dok-detail-date"></span></span><span class="flex items-center gap-1.5"><i data-feather="user" class="w-4 h-4 text-emerald-500"></i> <span id="dok-detail-uploader"></span></span></div>
+                <div><h4 class="text-sm font-bold text-slate-700 mb-1">Catatan / Keterangan:</h4><p id="dok-detail-catatan" class="text-sm text-slate-600 leading-relaxed italic bg-white p-4 rounded-xl border border-slate-200 shadow-sm"></p></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-action" class="hide fixed inset-0 bg-slate-900/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md border fade-in">
+            <div class="px-6 py-4 border-b bg-slate-50 flex justify-between items-center"><h3 class="font-bold flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5 text-emerald-500"></i> Validasi Tugas</h3><button class="modal-close text-slate-400"><i data-feather="x" class="w-5 h-5"></i></button></div>
+            <form id="action-form">
+                <div class="p-6 space-y-4">
+                    <input type="hidden" id="action-type"><input type="hidden" id="action-id"><input type="hidden" id="action-bab-id">
+                    <div class="bg-slate-50 p-3 rounded-lg border mb-2"><p class="text-xs text-slate-500">Menilai Dokumen Milik:</p><p id="action-target-name" class="text-sm font-semibold text-slate-800"></p></div>
+                    <div><label class="block text-sm font-medium mb-1">Keputusan</label><select id="action-status" class="w-full px-3 py-2 border rounded-lg text-sm bg-white"><option value="Menunggu">Menunggu / Reset</option><option value="Disetujui">Disetujui (ACC)</option><option value="Revisi">Perlu Revisi</option></select></div>
+                    <div><label class="block text-sm font-medium mb-1">Catatan Pembimbing</label><textarea id="action-catatan" rows="3" class="w-full px-3 py-2 border rounded-lg text-sm bg-white"></textarea></div>
+                </div>
+                <div class="px-6 py-4 border-t bg-slate-50 flex justify-end gap-3"><button type="button" class="modal-close px-4 py-2 text-sm text-slate-600 bg-slate-100 rounded-lg">Batal</button><button type="submit" class="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg">Simpan Nilai</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Master Block -->
+    <script>
+        // --- 1. GLOBAL HELPER FUNCTIONS ---
+        // Diganti dari 'const' menjadi 'function' agar dijamin terbaca oleh semua Inline HTML (onclick, dll)
+        window.$ = function(id) { return document.getElementById(id); };
+        window.hide = function(el) { if(el) el.classList.add('hide'); };
+        window.show = function(el) { if(el) el.classList.remove('hide'); };
+
+        // --- 2. GLOBAL MOCK DATA ---
+        const mockUsers = [
+            { username: 'admin', password: 'password', role: 'Admin', name: 'Administrator' },
+            { username: 'kepsek', password: 'password', role: 'Kepala Sekolah', name: 'Yani Rismawati, S.Pd. Si.' },
+            { username: 'guru', password: 'password', role: 'Guru Pembimbing', name: 'Brian Age Saputro, S.Kom.' },
+            { username: 'wali', password: 'password', role: 'Wali Kelas', name: 'Dwi Widianto, A.Md. T.', availableRoles: ['Wali Kelas', 'Guru Pembimbing'] },
+            { username: 'siswa', password: 'password', role: 'Siswa', name: 'Alex Cimantoro', nis: '102938' },
+        ];
+
+        let globalDbSiswa = [
+            { id: 1, nis: '102938', nama: 'Alex Cimantoro', jurusan: 'Rekayasa Perangkat Lunak', kelas: 'XII DKV', noWa: '081234567890', waliKelas: 'Dwi Widianto, A.Md. T.', waWalas: '08120000001', guru: 'Brian Age Saputro, S.Kom.', waGuru: '08120000002', dudi: 'PT. Teknologi Jaya', instruktur: 'Bpk. Reza', waInstruktur: '08120000003', namaOrtu: 'Bpk. Hartono', waOrtu: '08120000004', username: 'siswa', password: 'password' },
+            { id: 2, nis: '102939', nama: 'Masema Nur Semanuwati', jurusan: 'Tata Busana', kelas: 'XII DPB', noWa: '081234567891', waliKelas: 'Mamik Dwi R., S.Pd.', waWalas: '08120000001', guru: 'Brian Age Saputro, S.Kom.', waGuru: '08120000002', dudi: 'CV. Maju Mundur', instruktur: 'Ibu Dina', waInstruktur: '08120000005', namaOrtu: 'Ibu Siti', waOrtu: '08120000006', username: 'bina', password: 'password' },
+            { id: 3, nis: '102943', nama: 'Maeli Wareng Disastro', jurusan: 'Teknik Sepeda Motor', kelas: 'XII TSM 2', noWa: '081234567892', waliKelas: 'Ibu Dewi Lestari, S.Pd', waWalas: '08120000007', guru: 'Dwi Widianto, A.Md. T.', waGuru: '08120000001', dudi: 'Telkom Indonesia', instruktur: 'Bpk. Wahyu', waInstruktur: '08120000008', namaOrtu: 'Bpk. Slamet', waOrtu: '08120000009', username: 'budi', password: 'password' },
+        ];
+
+        let mockDbJurnal = [
+            { id: 1, tanggal: '02 Okt 2026', nis: '102938', nama: 'Alex Cimantoro', kegiatan: 'Mempelajari framework UI.', status: 'Menunggu', catatan: '' },
+            { id: 2, tanggal: '01 Okt 2026', nis: '102938', nama: 'Alex Cimantoro', kegiatan: 'Membuat rancangan database.', status: 'Disetujui', catatan: 'Bagus, teruskan' },
+            { id: 3, tanggal: '30 Sep 2026', nis: '102939', nama: 'Masema Nur Semanuwati', kegiatan: 'Instalasi server linux.', status: 'Disetujui', catatan: '' },
+        ];
+
+        let mockDbPresensi = [{ id: 1, nis: '102938', nama: 'Alex Cimantoro', tanggal: '01 Okt 2026', jam: '07:45 WIB', lokasi: 'Lat: -7.9839, Lng: 110.6322', status: 'Hadir' }];
+        let mockDbPengajuanIzin = [];
+        
+        let mockDbLaporan = [{ 
+            id: 1, nis: '102938', nama: 'Alex Cimantoro', tanggal: '02 Okt 2026', 
+            status: 'Proses Pengerjaan', catatan: '',
+            chapterStatus: { pengantar: 'Disetujui', bab1: 'Draft', bab2: 'Terkunci', bab3: 'Terkunci', bab4: 'Terkunci', pustaka: 'Terkunci' },
+            konten: {
+                kata_pengantar: 'Puji syukur kehadirat Tuhan Yang Maha Esa atas segala rahmat-Nya sehingga laporan Praktik Kerja Lapangan (PKL) ini dapat tersusun hingga selesai.',
+                bab1_a: 'Praktik Kerja Lapangan (PKL) adalah bentuk penyelenggaraan pendidikan kejuruan yang memadukan secara sistematik dan sinkron antara program pendidikan di sekolah dan program penguasaan keahlian yang diperoleh melalui kegiatan bekerja langsung di dunia kerja.',
+                bab1_b: '1. Mengaplikasikan pengetahuan teoritis ke dalam praktik nyata.\n2. Menambah pengalaman kerja.',
+                bab1_c: 'Peserta didik mendapatkan pengalaman nyata di dunia kerja untuk membangun etos kerja profesional.',
+                bab2_a: 'Perusahaan ini berdiri pada tahun 2018 dengan fokus utama pada pengembangan perangkat lunak dan layanan IT terpadu.',
+                bab2_b: 'Dipimpin oleh Direktur Utama, dibantu oleh Manajer Operasional dan tim teknis.',
+                bab2_c: 'Jalan Sudirman No 123, Daerah Istimewa Yogyakarta.',
+                bab2_d: 'Pembuatan Website, Aplikasi Mobile, dan Sistem Informasi Manajemen.',
+                bab3_a: 'Sistem Informasi adalah kombinasi dari teknologi informasi dan aktivitas orang yang menggunakan teknologi tersebut.',
+                bab3_b: 'Selama PKL, penyusun merancang dan mengimplementasikan antarmuka Sistem Informasi menggunakan kerangka kerja (framework) Tailwind CSS.',
+                bab4_a: 'Kegiatan PKL sangat bermanfaat untuk meningkatkan kompetensi keahlian dan melatih kedisiplinan.',
+                bab4_b: 'Diharapkan pihak industri memberikan lebih banyak porsi praktik mandiri kepada peserta didik.',
+                pustaka: 'Buku Pemrograman Web Lanjut, Penerbit Informatika, 2025.\nModul Belajar Framework CSS, 2026.'
+            }
+        }];
+
+        let globalDbJadwalMonitoring = [
+            { id: 1, dudi: 'PT. Teknologi Jaya', tanggal: '2026-10-04', guru: 'Brian Age Saputro, S.Kom.', agenda: 'Monitoring Serentak Tahap 1', status: 'Belum', catatan: '' },
+            { id: 2, dudi: 'CV. Maju Mundur', tanggal: '2026-10-04', guru: 'Brian Age Saputro, S.Kom.', agenda: 'Monitoring Serentak Tahap 1', status: 'Belum', catatan: '' },
+            { id: 3, dudi: 'Telkom Indonesia', tanggal: '2026-10-04', guru: 'Dwi Widianto, A.Md. T.', agenda: 'Monitoring Serentak Tahap 1', status: 'Belum', catatan: '' }
+        ];
+
+        let globalDbDokumentasi = [{ id: 1, type: 'Monitoring', title: 'Kunjungan Awal Telkom', uploader: 'Dwi Widianto, A.Md. T.', tanggal: '2026-09-15', catatan: 'Penerimaan siswa berjalan lancar.', img: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&auto=format&fit=crop&q=60' }];
+
+        const laporanStructure = [
+            { id: 'pengantar', title: 'Kata Pengantar', icon: 'message-circle', fields: [ {id: 'kata_pengantar', label: 'Teks Kata Pengantar', type: 'textarea'} ] },
+            { id: 'bab1', title: 'BAB I: Pendahuluan', icon: 'info', fields: [ {id: 'bab1_a', label: 'A. Latar Belakang Praktik Kerja Lapangan', type: 'textarea'}, {id: 'bab1_b', label: 'B. Tujuan Praktik Kerja Lapangan', type: 'textarea'}, {id: 'bab1_c', label: 'C. Manfaat Praktik Kerja Lapangan', type: 'textarea'} ] },
+            { id: 'bab2', title: 'BAB II: Uraian Umum DUDI', icon: 'briefcase', fields: [ {id: 'bab2_a', label: 'A. Sejarah DUDI', type: 'textarea'}, {id: 'bab2_b', label: 'B. Struktur Organisasi DUDI', type: 'textarea'}, {id: 'bab2_c', label: 'C. Lokasi DUDI', type: 'textarea'}, {id: 'bab2_d', label: 'D. Produk/Pelayanan DUDI', type: 'textarea'} ] },
+            { id: 'bab3', title: 'BAB III: Pembahasan', icon: 'edit-3', fields: [ {id: 'bab3_a', label: 'A. Dasar Teori', type: 'textarea'}, {id: 'bab3_b', label: 'B. Implementasi Dasar Teori Di DUDI', type: 'textarea'} ] },
+            { id: 'bab4', title: 'BAB IV: Penutup', icon: 'check-square', fields: [ {id: 'bab4_a', label: 'A. Kesimpulan', type: 'textarea'}, {id: 'bab4_b', label: 'B. Saran', type: 'textarea'} ] },
+            { id: 'pustaka', title: 'Daftar Pustaka', icon: 'book', fields: [ {id: 'pustaka', label: 'Referensi (Daftar Pustaka)', type: 'textarea'} ] },
+        ];
+
+        let roleAccess = [
+            { menuId: 'dashboard', label: 'Dashboard', access: ['Admin', 'Kepala Sekolah', 'Guru Pembimbing', 'Wali Kelas', 'Siswa'], icon: 'activity' },
+            { menuId: 'jadwal_monitoring', label: 'Jadwal Monitoring', access: ['Admin', 'Kepala Sekolah', 'Guru Pembimbing'], icon: 'calendar' },
+            { menuId: 'master_siswa', label: 'Data Siswa', access: ['Admin', 'Kepala Sekolah', 'Guru Pembimbing', 'Wali Kelas'], icon: 'users' },
+            { menuId: 'presensi', label: 'Presensi Selfie', access: ['Siswa'], icon: 'camera' },
+            { menuId: 'dok_siswa', label: 'Dokumentasi', access: ['Admin', 'Kepala Sekolah', 'Wali Kelas', 'Siswa'], icon: 'image' },
+            { menuId: 'data_absensi', label: 'Data Absensi', access: ['Admin', 'Kepala Sekolah', 'Guru Pembimbing', 'Wali Kelas'], icon: 'clock' },
+            { menuId: 'tugas_jurnal', label: 'Jurnal Harian', access: ['Admin', 'Kepala Sekolah', 'Guru Pembimbing', 'Wali Kelas', 'Siswa'], icon: 'file-text' },
+            { menuId: 'tugas_laporan', label: 'Laporan PKL', access: ['Admin', 'Kepala Sekolah', 'Guru Pembimbing', 'Wali Kelas', 'Siswa'], icon: 'book-open' },
+            { menuId: 'pengaturan', label: 'Pengaturan Sistem', access: ['Admin'], icon: 'settings' },
+        ];
+
+        let currentUser = null;
+        let activeMenu = 'dashboard';
+        let chartInstances = {};
+        
+        // --- 3. FORMATTING HELPERS ---
+        window.getMinCharLimit = function() {
+            const val = localStorage.getItem('sipkl_min_char');
+            return val ? parseInt(val) : 100;
+        };
+        window.getFormattedDate = function(dateStr) {
+            if(!dateStr) return ''; const d = new Date(dateStr); return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        };
+        window.getBadgeClass = function(status) {
+            if(['Hadir', 'Disetujui', 'Selesai'].includes(status)) return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+            if(['Alpa', 'Revisi', 'Ditolak'].includes(status)) return 'bg-red-100 text-red-700 border-red-200';
+            if(status === 'Sakit') return 'bg-blue-100 text-blue-700 border-blue-200';
+            if(status === 'Izin') return 'bg-purple-100 text-purple-700 border-purple-200';
+            if(status === 'Menunggu' || status === 'Menunggu Persetujuan' || status === 'Draft') return 'bg-amber-100 text-amber-700 border-amber-200';
+            return 'bg-slate-100 text-slate-700 border-slate-200';
+        };
+
+        // --- 4. MODAL CONTROLLERS ---
+        let confirmActionCallback = null;
+        window.showConfirm = function(title, msg, onConfirm) {
+            if(window.$('modal-confirm-title')) window.$('modal-confirm-title').textContent = title;
+            if(window.$('modal-confirm-msg')) window.$('modal-confirm-msg').textContent = msg;
+            confirmActionCallback = onConfirm; window.show(window.$('modal-confirm')); feather.replace();
+        };
+        window.closeConfirmModal = function() { window.hide(window.$('modal-confirm')); confirmActionCallback = null; };
+        
+        window.showAlertMsg = function(title, msg) {
+            if(window.$('modal-alert-title')) window.$('modal-alert-title').textContent = title;
+            if(window.$('modal-alert-msg')) window.$('modal-alert-msg').textContent = msg;
+            window.show(window.$('modal-alert')); feather.replace();
+        };
+        window.closeAlertModal = function() { window.hide(window.$('modal-alert')); };
+
+        // --- 5. AUTH & NAVIGATION ---
+        window.login = function(e) {
+            e.preventDefault();
+            const user = mockUsers.find(u => u.username === window.$('login-username').value && u.password === window.$('login-password').value);
+            if(user) {
+                currentUser = {...user}; 
+                window.hide(window.$('login-view')); window.show(window.$('main-app'));
+                if(window.$('user-display-name')) window.$('user-display-name').textContent = user.name;
+                
+                if(user.availableRoles && user.availableRoles.length > 1) {
+                    window.hide(window.$('user-display-role'));
+                    const switcher = window.$('role-switcher');
+                    if(switcher) {
+                        switcher.innerHTML = user.availableRoles.map(r => `<option value="${r}">${r}</option>`).join('');
+                        switcher.value = user.role;
+                        window.show(switcher);
+                    }
+                } else {
+                    window.show(window.$('user-display-role')); window.hide(window.$('role-switcher'));
+                    if(window.$('user-display-role')) window.$('user-display-role').textContent = user.role;
+                }
+
+                window.buildSidebar(); window.navigateTo('dashboard'); window.applySidebarState();
+            } else {
+                window.show(window.$('login-error')); if(window.$('login-error-msg')) window.$('login-error-msg').textContent = 'Username atau password salah.';
+            }
+        };
+
+        window.switchRole = function(newRole) {
+            currentUser.role = newRole; 
+            window.buildSidebar(); window.navigateTo('dashboard', 'Dashboard');
+        };
+
+        window.logout = function() {
+            currentUser = null; window.hide(window.$('main-app')); window.show(window.$('login-view'));
+            if(window.$('login-form')) window.$('login-form').reset(); window.hide(window.$('login-error'));
+        };
+
+        window.buildSidebar = function() {
+            const nav = window.$('sidebar-nav');
+            if(!nav) return;
+            nav.innerHTML = '';
+            
+            let visibleMenus = roleAccess.filter(m => m.access.includes(currentUser.role));
+            if (currentUser.role === 'Siswa') {
+                const idxDok = visibleMenus.findIndex(m => m.menuId === 'dok_siswa');
+                if(idxDok > -1) {
+                    const dokItem = visibleMenus.splice(idxDok, 1)[0];
+                    const idxPres = visibleMenus.findIndex(m => m.menuId === 'presensi');
+                    visibleMenus.splice(idxPres + 1, 0, dokItem);
+                }
+            }
+            
+            visibleMenus.forEach(menu => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white mb-1 menu-item';
+                btn.id = `nav-${menu.menuId}`;
+                btn.innerHTML = `<i data-feather="${menu.icon}" class="w-5 h-5 text-slate-400"></i> ${menu.label}`;
+                btn.onclick = () => window.navigateTo(menu.menuId, menu.label);
+                nav.appendChild(btn);
+            });
+            if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.navigateTo = function(menuId, menuLabel = 'Dashboard') {
+            activeMenu = menuId;
+            if(window.$('header-title')) window.$('header-title').textContent = menuLabel;
+            if(window.innerWidth < 768) { if(window.$('sidebar')) window.$('sidebar').classList.add('-translate-x-full'); window.hide(window.$('mobile-overlay')); }
+
+            document.querySelectorAll('.menu-item').forEach(el => {
+                el.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+                const svg = el.querySelector('svg'); if(svg) svg.classList.replace('text-indigo-200', 'text-slate-400');
+            });
+            const activeBtn = window.$(`nav-${menuId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+                const svg = activeBtn.querySelector('svg'); if(svg) svg.classList.replace('text-slate-400', 'text-indigo-200');
+            }
+
+            document.querySelectorAll('main section').forEach(window.hide);
+            const section = window.$(`sec-${menuId}`);
+            if(section) {
+                window.show(section);
+                if(menuId === 'dashboard') window.renderDashboard();
+                if(menuId === 'jadwal_monitoring') window.renderJadwal();
+                if(menuId === 'presensi') window.renderPresensi();
+                if(menuId === 'data_absensi') window.renderDataAbsensi();
+                if(menuId === 'tugas_jurnal') window.filterJurnal(); // Use filterJurnal directly
+                if(menuId === 'tugas_laporan') window.renderLaporan();
+                if(menuId === 'master_siswa') window.renderSiswa();
+                if(menuId === 'dok_siswa') window.renderDokumentasi();
+                if(menuId === 'pengaturan') window.renderPengaturan();
+            } else {
+                window.show(window.$('sec-fallback')); if(window.$('fallback-module-name')) window.$('fallback-module-name').textContent = menuLabel;
+            }
+        };
+
+        // --- 6. MODULE: DASHBOARD ---
+        window.renderDashboard = function() {
+            if(window.$('dash-name')) window.$('dash-name').textContent = currentUser.name;
+            window.hide(window.$('dash-admin')); window.hide(window.$('dash-siswa')); window.hide(window.$('dash-guru'));
+
+            const today = new Date("2026-10-03");
+            
+            if(currentUser.role === 'Admin' || currentUser.role === 'Kepala Sekolah' || currentUser.role === 'Wali Kelas') {
+                window.show(window.$('dash-admin'));
+                window.renderChart('chart-admin-bar', 'bar', { labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'], datasets: [{ label: 'Hadir', data: [140, 142, 138, 141, 143], backgroundColor: '#6366f1' }] });
+            
+                let allowedSiswa = globalDbSiswa;
+                if(currentUser.role === 'Wali Kelas') allowedSiswa = globalDbSiswa.filter(s => s.kelas === 'XII RPL 1');
+                
+                const jurusanMap = {};
+                allowedSiswa.forEach(s => {
+                    const jur = s.jurusan || 'Belum Ditentukan';
+                    if(!jurusanMap[jur]) jurusanMap[jur] = { total: 0, progress: 0 };
+                    jurusanMap[jur].total += 1;
+                    const lap = mockDbLaporan.find(l => l.nis === s.nis);
+                    if(lap) {
+                        if(lap.status === 'Disetujui') jurusanMap[jur].progress += 100;
+                        else if(lap.status === 'Menunggu') jurusanMap[jur].progress += 50;
+                        else if(lap.status === 'Revisi') jurusanMap[jur].progress += 25;
+                    }
+                });
+                
+                if(window.$('admin-prog-jurusan-container')) {
+                    window.$('admin-prog-jurusan-container').innerHTML = Object.keys(jurusanMap).map(jur => {
+                        const avg = Math.round(jurusanMap[jur].progress / jurusanMap[jur].total);
+                        let clr = avg >= 75 ? 'bg-emerald-500' : avg >= 40 ? 'bg-amber-500' : 'bg-red-500';
+                        return `<div onclick="window.viewDetailProgresJurusan('${jur}')" class="bg-slate-50 border p-4 rounded-xl cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all group"><div class="flex justify-between items-center mb-3"><h4 class="font-bold group-hover:text-indigo-700">${jur}</h4><span class="text-[11px] font-bold px-2 py-1 bg-white rounded shadow-sm border">${jurusanMap[jur].total} Siswa</span></div><div class="flex items-center gap-3"><div class="flex-1 h-2.5 bg-slate-200 rounded-full"><div class="h-full ${clr}" style="width: ${avg}%"></div></div><span class="text-sm font-bold">${avg}%</span></div></div>`;
+                    }).join('') || '<div class="col-span-full text-center py-4 text-sm text-slate-500">Tidak ada data.</div>';
+                }
+                
+                const rawAdminAct = [
+                    ...mockDbPresensi.map(p => ({ id: p.id, dateStr: p.tanggal, title: `Presensi ${p.status}`, desc: `${p.nama} <span class="text-[10px] font-medium bg-slate-100 px-1.5 py-0.5 rounded ml-1 border text-slate-500">${globalDbSiswa.find(s=>s.nis===p.nis)?.kelas || 'Siswa'}</span>`, icon: 'map-pin', clr: 'text-emerald-500', bg: 'bg-emerald-100' })),
+                    ...mockDbPengajuanIzin.map(i => ({ id: i.id, dateStr: i.tanggal, title: `Pengajuan ${i.tipe}`, desc: `${i.nama} <span class="text-[10px] font-medium bg-slate-100 px-1.5 py-0.5 rounded ml-1 border text-slate-500">${globalDbSiswa.find(s=>s.nis===i.nis)?.kelas || 'Siswa'}</span>`, icon: 'file-text', clr: 'text-amber-500', bg: 'bg-amber-100' })),
+                    ...mockDbJurnal.map(j => ({ id: j.id, dateStr: j.tanggal, title: `Isi Jurnal`, desc: `${j.nama} <span class="text-[10px] font-medium bg-slate-100 px-1.5 py-0.5 rounded ml-1 border text-slate-500">${globalDbSiswa.find(s=>s.nis===j.nis)?.kelas || 'Siswa'}</span>`, icon: 'book-open', clr: 'text-indigo-500', bg: 'bg-indigo-100' })),
+                    ...globalDbJadwalMonitoring.filter(j => j.status === 'Selesai').map(j => ({ id: j.id, dateStr: j.tanggal, title: `Upload Bukti Monitoring`, desc: `${j.guru} <span class="text-[10px] font-medium bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded ml-1 border border-indigo-200">Guru Pembimbing</span>`, icon: 'camera', clr: 'text-blue-500', bg: 'bg-blue-100' }))
+                ];
+                rawAdminAct.sort((a,b) => b.id - a.id);
+                if(window.$('admin-timeline')) {
+                    window.$('admin-timeline').innerHTML = rawAdminAct.map(act => `<div class="flex gap-4 items-start relative border-l-2 border-slate-100 ml-5 pl-5 pb-4"><div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full ${act.bg} border-2 border-white flex items-center justify-center"><i data-feather="${act.icon}" class="w-3 h-3 ${act.clr}"></i></div><div><p class="text-[11px] font-bold text-slate-400">${act.dateStr}</p><h4 class="text-sm font-semibold">${act.title}</h4><p class="text-xs text-slate-600 line-clamp-2 mt-0.5">${act.desc}</p></div></div>`).join('');
+                }
+                
+            } else if (currentUser.role === 'Siswa') {
+                window.show(window.$('dash-siswa'));
+                let lap = mockDbLaporan.find(l => l.nis === currentUser.nis);
+                let pct = 0, txt = 'Draft Kosong', bg='bg-slate-500';
+                
+                if(lap) {
+                    let filled = 0, totalFields = 0;
+                    laporanStructure.forEach(ch => { ch.fields.forEach(f => { totalFields++; if(lap.konten[f.id] && lap.konten[f.id].trim().length >= 100) filled++; }); });
+                    pct = Math.round((filled/totalFields)*100) || 0;
+                    
+                    if(lap.status==='Disetujui'){pct=100; txt='Laporan Diterima'; bg='bg-emerald-500'}
+                    else if(lap.status==='Menunggu'){txt='Menunggu Validasi'; bg='bg-amber-500'}
+                    else if(lap.status==='Revisi'){txt='Perlu Revisi'; bg='bg-red-500'}
+                    else if(pct > 0) { txt='Pengerjaan Draft'; bg='bg-indigo-500'; }
+                }
+                
+                if(window.$('siswa-lap-pct')) window.$('siswa-lap-pct').textContent = pct+'%'; 
+                if(window.$('siswa-lap-bar')) { window.$('siswa-lap-bar').style.width = pct+'%'; window.$('siswa-lap-bar').className = `h-full transition-all duration-1000 ${bg}`; }
+                if(window.$('siswa-lap-text')) window.$('siswa-lap-text').textContent = txt;
+
+                const myPres = mockDbPresensi.filter(p=>p.nis === currentUser.nis);
+                window.renderChart('chart-siswa-bar', 'bar', { labels: ['Hadir', 'Sakit', 'Izin', 'Alpa'], datasets: [{ label: 'Hari', data: [myPres.filter(p=>p.status==='Hadir').length||45, myPres.filter(p=>p.status==='Sakit').length||2, myPres.filter(p=>p.status==='Izin').length||1, 0], backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#ef4444'] }] });
+                
+                if(window.$('siswa-timeline')) {
+                    window.$('siswa-timeline').innerHTML = mockDbJurnal.filter(j=>j.nis === currentUser.nis).map(j=>`<div class="flex gap-4 items-start relative border-l-2 border-slate-100 ml-5 pl-5 pb-4"><div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center"><i data-feather="file-text" class="w-3 h-3 text-indigo-500"></i></div><div><p class="text-[11px] font-bold text-slate-400">${j.tanggal}</p><h4 class="text-sm font-semibold">Mengisi Jurnal</h4><p class="text-xs text-slate-600 line-clamp-2 mt-0.5">${j.kegiatan}</p></div></div>`).join('');
+                }
+
+            } else if (currentUser.role === 'Guru Pembimbing') {
+                window.show(window.$('dash-guru'));
+                const mySiswa = globalDbSiswa.filter(s=>s.guru === currentUser.name);
+                const mySiswaNis = mySiswa.map(s=>s.nis);
+
+                const myJadwal = globalDbJadwalMonitoring.filter(j=>j.guru === currentUser.name);
+                if(window.$('guru-monitoring-cards')) {
+                    window.$('guru-monitoring-cards').innerHTML = myJadwal.map(j => {
+                        const t = new Date(j.tanggal);
+                        let st = {t:'Mendatang', bg:'bg-slate-50', border:'border-slate-200', text:'text-slate-700', icon:'calendar'};
+                        if(j.status === 'Selesai') st = {t:'Selesai (Diunggah)', bg:'bg-emerald-50', border:'border-emerald-200', text:'text-emerald-700', icon:'check-circle'};
+                        else {
+                            let notif = new Date(t); notif.setDate(notif.getDate() - 1);
+                            if(notif.getDay()===0) notif.setDate(notif.getDate()-2); else if(notif.getDay()===6) notif.setDate(notif.getDate()-1);
+                            if(today >= notif && today < t) st = {t:'Besok! (H-1)', bg:'bg-amber-50', border:'border-amber-200', text:'text-amber-700', icon:'bell', anim:'animate-bounce'};
+                            else if(today >= t) st = {t:'Terlambat / Hari H', bg:'bg-red-50', border:'border-red-200', text:'text-red-700', icon:'alert-circle'};
+                        }
+                        return `<div class="p-4 rounded-xl border ${st.border} ${st.bg} flex gap-3 shadow-sm"><div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0"><i data-feather="${st.icon}" class="w-5 h-5 ${st.text} ${st.anim||''}"></i></div><div class="overflow-hidden flex-1"><span class="text-[10px] font-bold uppercase tracking-wider ${st.text}">${st.t}</span><h4 class="font-bold line-clamp-1 text-sm mt-0.5">${j.dudi}</h4><p class="text-[11px] font-semibold text-indigo-600 truncate mt-1">${j.agenda}</p><p class="text-[11px] text-slate-500 mt-0.5">${j.tanggal}</p></div></div>`;
+                    }).join('');
+                }
+
+                if(window.$('guru-prog-laporan')) {
+                    window.$('guru-prog-laporan').innerHTML = mySiswa.map(s => {
+                        const lap = mockDbLaporan.find(l=>l.nis===s.nis);
+                        let p=0, c='bg-slate-300', tc='text-slate-500', txt='Belum';
+                        if(lap){ 
+                            let filled = 0, totalFields = 0;
+                            laporanStructure.forEach(ch => { ch.fields.forEach(f => { totalFields++; if(lap.konten[f.id] && lap.konten[f.id].trim().length >= 100) filled++; }); });
+                            p = Math.round((filled/totalFields)*100) || 0;
+                            
+                            if(lap.status==='Disetujui'){p=100;c='bg-emerald-500';tc='text-emerald-700';txt='ACC'}
+                            else if(lap.status==='Menunggu'){c='bg-amber-500';tc='text-amber-700';txt='Cek'}
+                            else if(lap.status==='Revisi'){c='bg-red-500';tc='text-red-700';txt='Revisi'}
+                            else if(p > 0){ c='bg-indigo-500';tc='text-indigo-700';txt='Drafting' }
+                        }
+                        return `<div class="snap-start shrink-0 w-64 bg-slate-50 border p-4 rounded-lg"><div class="flex justify-between items-start mb-2"><div class="truncate pr-2"><p class="text-sm font-bold truncate">${s.nama}</p><p class="text-xs text-slate-500">${s.dudi}</p></div><span class="text-[10px] px-2 py-0.5 rounded font-bold ${tc}">${txt}</span></div><div class="h-1.5 bg-slate-200 rounded-full"><div class="h-full ${c}" style="width:${p}%"></div></div></div>`;
+                    }).join('');
+                }
+
+                window.renderChart('chart-guru-bar', 'bar', { labels: ['Hadir', 'Sakit', 'Izin', 'Alpa'], datasets: [{ label: 'Total', data: [120, 3, 2, 0], backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#ef4444'] }] });
+                
+                if(window.$('guru-timeline')) {
+                    window.$('guru-timeline').innerHTML = mockDbJurnal.filter(j=>mySiswaNis.includes(j.nis)).map(j=>`<div class="flex gap-4 items-start relative border-l-2 border-slate-100 ml-5 pl-5 pb-4"><div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center"><i data-feather="book-open" class="w-3 h-3 text-indigo-500"></i></div><div><p class="text-[11px] font-bold text-slate-400">${j.tanggal}</p><h4 class="text-sm font-semibold">${j.nama} mengisi jurnal</h4></div></div>`).join('');
+                }
+            }
+            if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.viewDetailProgresJurusan = function(jurusanName) {
+            if(window.$('title-prog-jurusan')) window.$('title-prog-jurusan').textContent = jurusanName;
+            let allowedSiswa = globalDbSiswa.filter(s => (s.jurusan || 'Belum Ditentukan') === jurusanName);
+            if(currentUser.role === 'Wali Kelas') allowedSiswa = allowedSiswa.filter(s => s.kelas === 'XII RPL 1');
+            
+            let html = '';
+            allowedSiswa.forEach((s, idx) => {
+                const lap = mockDbLaporan.find(l => l.nis === s.nis);
+                let prog = 0, stat = "Belum Ada File", clr = "bg-slate-100 text-slate-600 border-slate-200", barClr="bg-slate-300";
+                if(lap) {
+                    let filled = 0, totalFields = 0;
+                    laporanStructure.forEach(ch => { ch.fields.forEach(f => { totalFields++; if(lap.konten[f.id] && lap.konten[f.id].trim().length >= 100) filled++; }); });
+                    prog = Math.round((filled/totalFields)*100) || 0;
+                    
+                    if(lap.status === 'Disetujui'){ prog = 100; stat = "Selesai"; clr = "bg-emerald-100 text-emerald-700 border-emerald-200"; barClr="bg-emerald-500"; }
+                    else if(lap.status === 'Menunggu'){ stat = "Menunggu Validasi"; clr = "bg-amber-100 text-amber-700 border-amber-200"; barClr="bg-amber-500"; }
+                    else if(lap.status === 'Revisi'){ stat = "Perlu Revisi"; clr = "bg-red-100 text-red-700 border-red-200"; barClr="bg-red-500"; }
+                    else if(prog > 0) { stat = "Drafting"; clr = "bg-indigo-100 text-indigo-700 border-indigo-200"; barClr="bg-indigo-500"; }
+                }
+                html += `<tr class="hover:bg-slate-50 transition-colors"><td class="px-4 py-4 text-center align-middle">${idx+1}</td><td class="px-4 py-4 align-middle"><p class="font-bold">${s.nama}</p><p class="text-xs text-slate-500 mt-0.5">${s.nis} &bull; ${s.kelas}</p></td><td class="px-4 py-4 align-middle text-sm font-medium">${s.dudi}</td><td class="px-4 py-4 align-middle"><span class="text-[10px] px-2.5 py-1 rounded-full font-bold whitespace-nowrap border ${clr}">${stat}</span></td><td class="px-4 py-4 align-middle"><div class="flex items-center gap-3"><div class="flex-1 h-2 bg-slate-100 border rounded-full overflow-hidden shadow-inner"><div class="h-full ${barClr} transition-all duration-1000" style="width: ${prog}%"></div></div><span class="text-xs font-bold text-slate-600 w-10 text-right">${prog}%</span></div></td></tr>`;
+            });
+            if(window.$('tbody-prog-jurusan')) window.$('tbody-prog-jurusan').innerHTML = html || '<tr><td colspan="5" class="text-center py-8 text-slate-500">Tidak ada data siswa untuk jurusan ini.</td></tr>';
+            window.show(window.$('modal-view-progres')); if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.renderChart = function(canvasId, type, data) {
+            const cvs = window.$(canvasId);
+            if(!cvs) return;
+            if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
+            chartInstances[canvasId] = new Chart(cvs.getContext('2d'), { type: type, data: data, options: { responsive: true, maintainAspectRatio: false } });
+        };
+
+        // --- 7. MODULE: PRESENSI ---
+        let stream = null;
+        window.switchPresensiTab = function(tab) {
+            if(tab === 'hadir') {
+                window.$('tab-btn-hadir').classList.add('bg-white', 'text-indigo-600', 'shadow-sm'); window.$('tab-btn-izin').classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+                window.show(window.$('tab-content-hadir')); window.hide(window.$('tab-content-izin'));
+            } else {
+                window.$('tab-btn-izin').classList.add('bg-white', 'text-indigo-600', 'shadow-sm'); window.$('tab-btn-hadir').classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+                window.hide(window.$('tab-content-hadir')); window.show(window.$('tab-content-izin')); window.stopCamera();
+            }
+        };
+        window.renderPresensi = function() {
+            window.switchPresensiTab('hadir');
+            const myHistory = [...mockDbPresensi.filter(p=>p.nis===currentUser.nis), ...mockDbPengajuanIzin.filter(p=>p.nis===currentUser.nis)].sort((a,b)=>b.id-a.id);
+            if(window.$('tbody-riwayat-presensi')) {
+                window.$('tbody-riwayat-presensi').innerHTML = myHistory.length ? myHistory.map(h => `<tr class="hover:bg-slate-50 border-b"><td class="px-6 py-4 font-semibold text-xs">${h.tanggal}<br><span class="font-normal text-slate-500">${h.jam||'-'}</span></td><td class="px-6 py-4 text-xs font-mono text-slate-500">${h.lokasi || h.alasan}</td><td class="px-6 py-4 text-center"><span class="text-[11px] px-2 py-1 rounded font-semibold ${window.getBadgeClass(h.status)}">${h.status}</span></td></tr>`).join('') : '<tr><td colspan="3" class="text-center py-4 text-slate-400">Belum ada riwayat.</td></tr>';
+            }
+        };
+        window.startCamera = async function() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                if(window.$('presensi-video')) window.$('presensi-video').srcObject = stream;
+                window.hide(window.$('cam-placeholder')); window.show(window.$('presensi-video'));
+                window.hide(window.$('btn-start-cam')); window.show(window.$('btn-capture'));
+                navigator.geolocation.getCurrentPosition(
+                    pos => { if(window.$('gps-text')) window.$('gps-text').textContent = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`; },
+                    err => { if(window.$('gps-text')) window.$('gps-text').textContent = "-8.0067, 110.6508 (Simulasi)"; }
+                );
+            } catch(e) {
+                if(window.$('gps-text')) window.$('gps-text').textContent = "-8.0067, 110.6508 (Simulasi)";
+                window.hide(window.$('btn-start-cam')); window.show(window.$('btn-capture'));
+            }
+        };
+        window.stopCamera = function() {
+            if(stream) stream.getTracks().forEach(t => t.stop());
+            window.hide(window.$('presensi-video')); window.show(window.$('cam-placeholder'));
+            window.show(window.$('btn-start-cam')); window.hide(window.$('btn-capture')); window.hide(window.$('btn-submit-hadir')); window.hide(window.$('btn-retake')); window.hide(window.$('presensi-photo-preview'));
+        };
+
+        window.renderDataAbsensi = function() {
+            if(!window.$('filter-date-absensi').value) window.$('filter-date-absensi').value = new Date().toISOString().split('T')[0];
+            if(currentUser.role === 'Wali Kelas') {
+                const pending = mockDbPengajuanIzin.filter(p => p.waliKelas === currentUser.name && p.status === 'Menunggu Persetujuan');
+                if(pending.length > 0) {
+                    window.show(window.$('wali-approval-panel')); if(window.$('wali-approval-count')) window.$('wali-approval-count').textContent = pending.length;
+                    if(window.$('wali-approval-list')) window.$('wali-approval-list').innerHTML = pending.map(p => `<div class="bg-white p-3 rounded-lg border border-amber-200 flex justify-between shadow-sm"><div><p class="font-bold text-sm">${p.nama} <span class="text-xs font-normal text-slate-500">(${p.nis})</span></p><p class="text-xs text-amber-600 font-bold">${p.tipe} - ${p.tanggal}</p><p class="text-xs text-slate-500 italic">"${p.alasan}"</p></div><div class="flex flex-col gap-1"><button onclick="window.accIzin(${p.id}, true)" class="bg-emerald-500 text-white text-[10px] px-2 py-1 rounded">Setujui</button><button onclick="window.accIzin(${p.id}, false)" class="bg-red-100 text-red-600 text-[10px] px-2 py-1 rounded">Tolak</button></div></div>`).join('');
+                } else window.hide(window.$('wali-approval-panel'));
+            } else window.hide(window.$('wali-approval-panel'));
+            window.filterAbsensi();
+        };
+        window.accIzin = function(id, isAcc) {
+            const idx = mockDbPengajuanIzin.findIndex(p=>p.id===id);
+            if(idx > -1 && isAcc) {
+                const p = mockDbPengajuanIzin[idx];
+                mockDbPresensi.unshift({ id: Date.now(), nis: p.nis, nama: p.nama, tanggal: p.tanggal, jam: '-', lokasi: `Validasi: ${p.alasan}`, status: p.tipe });
+            }
+            if(idx > -1) mockDbPengajuanIzin.splice(idx,1); window.renderDataAbsensi();
+        };
+        window.filterAbsensi = function() {
+            const dateStr = window.getFormattedDate(window.$('filter-date-absensi')?window.$('filter-date-absensi').value:'');
+            const search = window.$('search-absensi')?window.$('search-absensi').value.toLowerCase():'';
+            const statusFilter = window.$('filter-status-absensi')?window.$('filter-status-absensi').value:'';
+            
+            let allowed = globalDbSiswa;
+            if(currentUser.role==='Guru Pembimbing') allowed = globalDbSiswa.filter(s=>s.guru === currentUser.name);
+            if(currentUser.role==='Wali Kelas') allowed = globalDbSiswa.filter(s=>s.kelas === 'XII RPL 1');
+
+            const isPast = window.$('filter-date-absensi') && new Date(window.$('filter-date-absensi').value) < new Date(new Date().toISOString().split('T')[0]);
+            
+            let html = '';
+            allowed.forEach((s, idx) => {
+                const p = mockDbPresensi.find(x => x.nis === s.nis && x.tanggal === dateStr);
+                let stat = p ? p.status : 'Belum Presensi';
+                let waktu = p ? (p.tanggal+'<br><span class="text-slate-500">'+p.jam+'</span>') : '-';
+                if(!p && isPast) { stat = 'Alpa'; waktu = dateStr+'<br><span class="text-[10px]">12:00 (Sistem)</span>'; }
+                if((!statusFilter || stat === statusFilter) && `${s.nama} ${s.nis} ${s.kelas} ${s.dudi}`.toLowerCase().includes(search)) {
+                    html += `<tr class="border-b hover:bg-slate-50"><td class="px-4 py-3 text-center">${idx+1}</td><td class="px-4 py-3"><p class="font-semibold">${s.nama}</p><p class="text-xs text-slate-500">${s.nis}</p></td><td class="px-4 py-3 text-sm">${s.kelas}</td><td class="px-4 py-3 text-sm">${s.dudi}</td><td class="px-4 py-3 text-xs">${waktu}</td><td class="px-4 py-3 text-xs font-mono">${p?p.lokasi:'Otomatis'}</td><td class="px-4 py-3 text-center"><span class="text-[11px] px-2 py-1 rounded-full ${window.getBadgeClass(stat)}">${stat}</span></td></tr>`;
+                }
+            });
+            if(window.$('tbody-data-absensi')) window.$('tbody-data-absensi').innerHTML = html || '<tr><td colspan="7" class="text-center py-6">Data tidak ditemukan.</td></tr>';
+        };
+
+        // --- 8. MODULE: JURNAL ---
+        window.filterJurnal = function() {
+            if(currentUser.role === 'Siswa') window.show(window.$('btn-add-jurnal-show')); else window.hide(window.$('btn-add-jurnal-show'));
+            if(currentUser.role === 'Siswa') window.hide(document.querySelector('#sec-tugas_jurnal .siswa-col'));
+            else window.show(document.querySelector('#sec-tugas_jurnal .siswa-col'));
+
+            const dateStr = window.getFormattedDate(window.$('filter-date-jurnal')?window.$('filter-date-jurnal').value:'');
+            const search = window.$('search-jurnal')?window.$('search-jurnal').value.toLowerCase():'';
+            
+            let allowed = mockDbJurnal;
+            if(currentUser.role === 'Siswa') allowed = mockDbJurnal.filter(j => j.nis === currentUser.nis);
+            else if(currentUser.role === 'Guru Pembimbing') {
+                const myNis = globalDbSiswa.filter(s=>s.guru === currentUser.name).map(s=>s.nis); allowed = mockDbJurnal.filter(j=>myNis.includes(j.nis));
+            } else if(currentUser.role === 'Wali Kelas') {
+                const myNis = globalDbSiswa.filter(s=>s.kelas === 'XII RPL 1').map(s=>s.nis); allowed = mockDbJurnal.filter(j=>myNis.includes(j.nis));
+            }
+            
+            allowed = allowed.sort((a,b) => b.id - a.id);
+
+            let html = '';
+            allowed.forEach(j => {
+                const s = globalDbSiswa.find(x => x.nis === j.nis) || {};
+                if((dateStr === '' || j.tanggal === dateStr) && `${j.nama} ${s.kelas} ${j.kegiatan}`.toLowerCase().includes(search)) {
+                    html += `<tr class="border-b hover:bg-slate-50"><td class="px-4 py-3 text-xs whitespace-nowrap align-top">${j.tanggal}</td>${currentUser.role!=='Siswa' ? `<td class="px-4 py-3 align-top"><p class="font-bold text-sm">${j.nama}</p><p class="text-xs text-slate-500">${j.nis}</p></td>` : ''}<td class="px-4 py-3 text-sm align-top">${s.kelas||'-'}</td><td class="px-4 py-3 text-sm align-top">${s.dudi||'-'}</td><td class="px-4 py-3 text-sm align-top"><p class="line-clamp-2">${j.kegiatan}</p>${j.catatan?`<p class="text-[11px] text-amber-600 mt-1">Ada Catatan</p>`:''}</td><td class="px-4 py-3 text-center align-top"><span class="text-[10px] px-2 py-1 rounded-full border ${window.getBadgeClass(j.status)}">${j.status}</span></td><td class="px-4 py-3 text-center align-top whitespace-nowrap"><button onclick="window.viewJurnalKumulatif('${j.nis}')" class="text-indigo-600 mx-1 p-1 bg-indigo-50 rounded" title="Lihat Rekap"><i data-feather="eye" class="w-4 h-4"></i></button>${currentUser.role==='Guru Pembimbing' ? `<button onclick="window.actionJurnal(${j.id})" class="text-emerald-600 mx-1 p-1 bg-emerald-50 rounded" title="Validasi"><i data-feather="edit" class="w-4 h-4"></i></button>` : ''}</td></tr>`;
+                }
+            });
+            if(window.$('tbody-jurnal')) window.$('tbody-jurnal').innerHTML = html || `<tr><td colspan="7" class="text-center py-6 text-slate-500">Data kosong.</td></tr>`; if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.viewJurnalKumulatif = function(nis) {
+            const s = globalDbSiswa.find(x=>x.nis === nis);
+            if(window.$('a4-nama')) window.$('a4-nama').textContent = s.nama; if(window.$('a4-dudi')) window.$('a4-dudi').textContent = s.dudi; if(window.$('a4-guru')) window.$('a4-guru').textContent = s.guru;
+            const jSiswa = mockDbJurnal.filter(x=>x.nis===nis).sort((a,b)=>a.id-b.id);
+            let trs = ''; jSiswa.forEach((j, i) => { trs += `<tr><td class="border border-black py-3 text-center align-top">${i+1}</td><td class="border border-black px-2 align-top">${j.tanggal}</td><td class="border border-black px-2 align-top whitespace-pre-wrap">${j.kegiatan}</td><td class="border border-black px-2 align-top italic text-slate-700">${j.catatan||''}</td></tr>`; });
+            if(jSiswa.length < 5) for(let i=0; i<(5-jSiswa.length); i++) trs += `<tr><td class="border border-black py-5"></td><td class="border border-black"></td><td class="border border-black"></td><td class="border border-black"></td></tr>`;
+            if(window.$('a4-tbody')) window.$('a4-tbody').innerHTML = trs;
+            window.show(window.$('modal-view-jurnal')); if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.actionJurnal = function(id) {
+            const j = mockDbJurnal.find(x=>x.id===id);
+            if(window.$('action-id')) window.$('action-id').value = id; if(window.$('action-type')) window.$('action-type').value = 'jurnal'; if(window.$('action-target-name')) window.$('action-target-name').textContent = j.nama;
+            if(window.$('action-status')) window.$('action-status').value = j.status!=='Menunggu'?j.status:'Disetujui'; if(window.$('action-catatan')) window.$('action-catatan').value = j.catatan;
+            
+            // Cleanup any hidden fields from Laporan
+            const oldHidden = window.$('action-bab-id');
+            if(oldHidden) oldHidden.remove();
+            
+            window.show(window.$('modal-action'));
+        };
+
+        // --- 9. MODULE: TUGAS LAPORAN (SEQUENTIAL & 100 CHARS) ---
+        window.renderLaporan = function() {
+            if (currentUser.role === 'Siswa') {
+                window.show(window.$('laporan-siswa-view')); window.hide(window.$('laporan-guru-view'));
+                window.renderLaporanSiswa();
+            } else {
+                window.hide(window.$('laporan-siswa-view')); window.show(window.$('laporan-guru-view'));
+                window.renderLaporanGuruAdmin();
+            }
+        };
+
+        window.renderLaporanSiswa = function() {
+            const minChar = window.getMinCharLimit();
+            let lap = mockDbLaporan.find(l => l.nis === currentUser.nis);
+            if (!lap) {
+                // Initial creation with chapterStatus
+                lap = { 
+                    id: Date.now(), nis: currentUser.nis, nama: currentUser.name, tanggal: '-', status: 'Proses Pengerjaan', catatan: '', 
+                    chapterStatus: { pengantar: 'Draft', bab1: 'Terkunci', bab2: 'Terkunci', bab3: 'Terkunci', bab4: 'Terkunci', pustaka: 'Terkunci' },
+                    konten: {} 
+                };
+                mockDbLaporan.push(lap);
+            }
+            
+            let filled = 0; let totalFields = 0; let html = '';
+            
+            laporanStructure.forEach((ch, idx) => {
+                let chFilled = 0;
+                ch.fields.forEach(f => {
+                    totalFields++;
+                    if(lap.konten[f.id] && lap.konten[f.id].trim().length >= minChar) { filled++; chFilled++; }
+                });
+                
+                // SEQUENTIAL UNLOCK LOGIC
+                let st = lap.chapterStatus[ch.id] || 'Terkunci';
+                
+                // If it's the first chapter and it was locked, unlock it
+                if (idx === 0 && st === 'Terkunci') st = 'Draft';
+                
+                // Logic for chapter 2 onwards
+                if (idx > 0) {
+                    const prevCh = laporanStructure[idx-1];
+                    const prevSt = lap.chapterStatus[prevCh.id];
+                    // If previous is NOT approved, this one must be locked
+                    if (prevSt !== 'Disetujui' && st !== 'Disetujui' && st !== 'Menunggu' && st !== 'Revisi') {
+                        st = 'Terkunci';
+                        lap.chapterStatus[ch.id] = 'Terkunci';
+                    } else if (prevSt === 'Disetujui' && st === 'Terkunci') {
+                        // If previous IS approved, and this is still locked, open it!
+                        st = 'Draft';
+                        lap.chapterStatus[ch.id] = 'Draft';
+                    }
+                }
+                
+                let badge = '';
+                if(st === 'Disetujui') badge = `<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded font-bold">ACC</span>`;
+                else if(st === 'Menunggu') badge = `<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded font-bold">Dinilai</span>`;
+                else if(st === 'Revisi') badge = `<span class="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded font-bold">Revisi</span>`;
+                else if(st === 'Terkunci') badge = `<span class="bg-slate-200 text-slate-500 text-[10px] px-2 py-0.5 rounded font-bold"><i data-feather="lock" class="w-3 h-3 inline"></i> Terkunci</span>`;
+                else badge = `<span class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded font-bold">Draft Terbuka</span>`;
+                
+                const isLocked = st === 'Terkunci';
+
+                html += `
+                <div class="bg-white p-5 rounded-xl border shadow-sm ${isLocked ? 'opacity-60 bg-slate-50' : 'hover:border-indigo-300'} transition-colors flex flex-col relative overflow-hidden">
+                    ${isLocked ? `<div class="absolute inset-0 z-10 cursor-not-allowed"></div>` : ''}
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg ${isLocked ? 'bg-slate-200 text-slate-400 border-slate-300' : 'bg-indigo-50 text-indigo-500 border-indigo-100'} border flex items-center justify-center shrink-0"><i data-feather="${isLocked ? 'lock' : ch.icon}" class="w-5 h-5"></i></div>
+                            <div><h4 class="font-bold text-sm line-clamp-1 ${isLocked ? 'text-slate-500' : 'text-slate-800'}">${ch.title}</h4><p class="text-[10px] text-slate-400 mt-0.5">${ch.fields.length} Kolom Isian</p></div>
+                        </div>
+                        ${badge}
+                    </div>
+                    <button onclick="window.editBabLaporan('${ch.id}')" ${isLocked || st === 'Menunggu' || st === 'Disetujui' ? 'disabled' : ''} class="mt-auto w-full py-2 ${isLocked || st === 'Menunggu' || st === 'Disetujui' ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-transparent' : 'bg-slate-50 hover:bg-indigo-50 text-indigo-600 border border-slate-200 hover:border-indigo-200'} text-sm font-medium rounded-lg transition-colors relative z-20">
+                        ${isLocked ? 'Terkunci' : (st === 'Menunggu' ? 'Sedang Dinilai' : (st === 'Disetujui' ? 'Telah Selesai' : 'Buka Editor'))}
+                    </button>
+                </div>`;
+            });
+            
+            if(window.$('lap-siswa-chapters')) window.$('lap-siswa-chapters').innerHTML = html;
+            
+            const progress = Math.round((filled / totalFields) * 100) || 0;
+            if(window.$('lap-siswa-pct')) window.$('lap-siswa-pct').textContent = progress + '%';
+            if(window.$('lap-siswa-bar')) window.$('lap-siswa-bar').style.width = progress + '%';
+
+            // Global Status
+            let allCompleted = true; let hasWaiting = false; let hasRevisi = false;
+            laporanStructure.forEach(c => {
+                if(lap.chapterStatus[c.id] === 'Menunggu') hasWaiting = true;
+                if(lap.chapterStatus[c.id] === 'Revisi') hasRevisi = true;
+                if(lap.chapterStatus[c.id] !== 'Disetujui') allCompleted = false;
+            });
+            lap.status = allCompleted ? 'Disetujui' : (hasRevisi ? 'Revisi' : (hasWaiting ? 'Menunggu' : 'Proses Pengerjaan'));
+
+            if(window.$('lap-siswa-status')) {
+                window.$('lap-siswa-status').textContent = lap.status;
+                window.$('lap-siswa-status').className = `font-semibold ${lap.status === 'Revisi' ? 'text-red-600' : (lap.status === 'Disetujui' ? 'text-emerald-600' : 'text-indigo-600')}`;
+            }
+
+            if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.updateCharCount = function(id) {
+            const minChar = window.getMinCharLimit();
+            const val = window.$('val_' + id).value;
+            const countSpan = window.$('count_' + id);
+            if(countSpan) {
+                countSpan.textContent = val.length;
+                if(val.length < minChar) { countSpan.classList.add('text-red-600'); countSpan.classList.remove('text-emerald-600'); } 
+                else { countSpan.classList.add('text-emerald-600'); countSpan.classList.remove('text-red-600'); }
+            }
+        };
+
+        window.editBabLaporan = function(babId) {
+            const minChar = window.getMinCharLimit();
+            const ch = laporanStructure.find(c => c.id === babId);
+            let lap = mockDbLaporan.find(l => l.nis === currentUser.nis);
+            
+            if(window.$('modal-edit-bab-title')) window.$('modal-edit-bab-title').innerHTML = `<i data-feather="${ch.icon}" class="w-5 h-5 text-indigo-500"></i> Form ${ch.title}`;
+            if(window.$('edit-bab-id')) window.$('edit-bab-id').value = babId;
+            
+            let html = `<div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-sm text-indigo-800 mb-4 font-medium"><i data-feather="info" class="w-4 h-4 inline mr-1"></i> Syarat minimum penulisan adalah ${minChar} karakter untuk setiap kolom. Jika kurang, Anda hanya bisa menyimpannya sebagai Draft.</div>`;
+            
+            ch.fields.forEach(f => {
+                const val = lap.konten[f.id] || '';
+                const clr = val.length >= minChar ? 'text-emerald-600' : 'text-red-600';
+                html += `
+                <div class="mb-5">
+                    <label class="flex justify-between items-end text-sm font-bold text-slate-800 mb-1.5">
+                        <span>${f.label}</span>
+                        <span class="text-[10px] text-slate-500 font-normal bg-white px-2 py-0.5 rounded border border-slate-200"><span id="count_${f.id}" class="font-bold ${clr}">${val.length}</span> / Min. ${minChar}</span>
+                    </label>
+                    <textarea id="val_${f.id}" oninput="window.updateCharCount('${f.id}')" rows="5" class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all leading-relaxed bg-white shadow-inner">${val}</textarea>
+                </div>`;
+            });
+            
+            if(window.$('modal-edit-bab-body')) window.$('modal-edit-bab-body').innerHTML = html;
+            
+            const footer = window.$('modal-edit-bab-footer');
+            if(footer) {
+                footer.innerHTML = `
+                    <button type="button" class="modal-close px-4 py-2 text-sm text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium" onclick="window.hide(window.$('modal-edit-bab'))">Batal</button>
+                    <button type="button" onclick="window.simpanDraftBab('${babId}')" class="px-4 py-2 text-sm font-medium text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-lg shadow-sm border border-amber-200">Simpan Draft</button>
+                    <button type="button" onclick="window.ajukanBab('${babId}')" class="px-6 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm flex items-center"><i data-feather="send" class="w-4 h-4 mr-2"></i> Ajukan ke Pembimbing</button>
+                `;
+            }
+            window.show(window.$('modal-edit-bab')); if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.simpanDraftBab = function(babId) {
+            const ch = laporanStructure.find(c => c.id === babId);
+            let lap = mockDbLaporan.find(l => l.nis === currentUser.nis);
+            ch.fields.forEach(f => { lap.konten[f.id] = window.$('val_' + f.id).value; });
+            window.hide(window.$('modal-edit-bab')); window.renderLaporan();
+            window.showAlertMsg('Draft Disimpan', 'Teks laporan berhasil disimpan ke sistem (belum terkirim ke pembimbing).');
+        };
+
+        window.ajukanBab = function(babId) {
+            const minChar = window.getMinCharLimit();
+            const ch = laporanStructure.find(c => c.id === babId);
+            let lap = mockDbLaporan.find(l => l.nis === currentUser.nis);
+            
+            let allValid = true;
+            ch.fields.forEach(f => {
+                const val = window.$('val_' + f.id).value.trim();
+                lap.konten[f.id] = val; 
+                if(val.length < minChar) allValid = false;
+            });
+            
+            if(!allValid) {
+                window.showAlertMsg('Gagal Mengajukan', `Setiap isian wajib memiliki minimal ${minChar} karakter. Gunakan "Simpan Draft" jika Anda belum selesai mengetik.`);
+                return;
+            }
+            
+            window.showConfirm('Ajukan Bab Ini?', `Anda akan mengirimkan ${ch.title} ke pembimbing. Setelah diajukan, Bab ini akan dikunci dari pengeditan.`, () => {
+                lap.tanggal = new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'});
+                window.hide(window.$('modal-edit-bab')); window.renderLaporan();
+                window.showAlertMsg('Berhasil Terkirim', `${ch.title} telah masuk ke daftar tunggu penilaian pembimbing Anda.`);
+            });
+        };
+
+        window.renderLaporanGuruAdmin = function() {
+            let allowed = mockDbLaporan;
+            if(currentUser.role === 'Guru Pembimbing') {
+                const myNis = globalDbSiswa.filter(s=>s.guru === currentUser.name).map(s=>s.nis);
+                allowed = mockDbLaporan.filter(l=>myNis.includes(l.nis));
+            }
+            
+            const minChar = window.getMinCharLimit();
+            let html = '';
+            allowed.forEach((l, i) => {
+                const s = globalDbSiswa.find(x => x.nis === l.nis) || {};
+                let filled = 0; let totalFields = 0;
+                laporanStructure.forEach(ch => { ch.fields.forEach(f => { totalFields++; if(l.konten && l.konten[f.id] && l.konten[f.id].trim().length >= minChar) filled++; }); });
+                const progress = Math.round((filled / totalFields) * 100) || 0;
+                
+                // Find Pending Bab for Guru
+                let pendingBabText = '-';
+                if(l.chapterStatus) {
+                    for(let key in l.chapterStatus) {
+                        if(l.chapterStatus[key] === 'Menunggu' || l.chapterStatus[key] === 'Revisi') {
+                            const ch = laporanStructure.find(c => c.id === key);
+                            pendingBabText = ch ? ch.title : 'Validasi'; break;
+                        }
+                    }
+                }
+                
+                html += `
+                <tr class="hover:bg-slate-50 border-b">
+                    <td class="px-4 py-4 text-center align-middle">${i+1}</td>
+                    <td class="px-4 py-4 align-middle">
+                        <p class="font-bold text-slate-800">${l.nama}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">${l.nis} &bull; Tgl Interaksi: ${l.tanggal}</p>
+                    </td>
+                    <td class="px-4 py-4 text-sm align-middle">${s.dudi||'-'}</td>
+                    <td class="px-4 py-4 align-middle text-center">
+                        <div class="flex items-center gap-3 justify-center mb-1">
+                            <div class="w-full max-w-[100px] h-2 bg-slate-200 rounded-full overflow-hidden border"><div class="h-full bg-indigo-500" style="width:${progress}%"></div></div>
+                            <span class="text-xs font-bold text-slate-600">${progress}%</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-medium">Sedang dinilai: <b class="text-slate-600">${pendingBabText}</b></span>
+                    </td>
+                    <td class="px-4 py-4 text-center align-middle">
+                        <span class="text-[10px] px-2.5 py-1 rounded-full border font-semibold whitespace-nowrap ${window.getBadgeClass(l.status)}">${l.status}</span>
+                    </td>
+                    <td class="px-4 py-4 text-center whitespace-nowrap align-middle">
+                        <button onclick="window.cetakLaporanFinal('${l.nis}')" class="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg mr-1 transition-colors" title="Lihat/Unduh PDF Final"><i data-feather="printer" class="w-4 h-4"></i></button>
+                        ${currentUser.role==='Guru Pembimbing' ? `<button onclick="window.actionLaporan(${l.id})" class="p-1.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors" title="Beri Nilai/Validasi Bab"><i data-feather="check-circle" class="w-4 h-4"></i></button>`:''}
+                    </td>
+                </tr>`;
+            });
+            if(window.$('tbody-laporan')) window.$('tbody-laporan').innerHTML = html || '<tr><td colspan="6" class="text-center py-10 text-slate-500">Belum ada data laporan dari siswa.</td></tr>';
+            if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.actionLaporan = function(id) {
+            const l = mockDbLaporan.find(x=>x.id===id);
+            
+            let pendingBab = null; let babTitle = "Laporan Keseluruhan";
+            if(l.chapterStatus) {
+                for(let key in l.chapterStatus) {
+                    if(l.chapterStatus[key] === 'Menunggu' || l.chapterStatus[key] === 'Revisi') {
+                        pendingBab = key; const ch = laporanStructure.find(c => c.id === pendingBab);
+                        if(ch) babTitle = ch.title; break;
+                    }
+                }
+            }
+            
+            if(window.$('action-id')) window.$('action-id').value = id; 
+            if(window.$('action-type')) window.$('action-type').value = 'laporan'; 
+            if(window.$('action-target-name')) window.$('action-target-name').innerHTML = `${l.nama}<br><span class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 mt-1 inline-block">Evaluasi: ${babTitle}</span>`;
+            if(window.$('action-status')) window.$('action-status').value = pendingBab ? (l.chapterStatus[pendingBab] !== 'Menunggu' ? l.chapterStatus[pendingBab] : 'Disetujui') : 'Disetujui'; 
+            if(window.$('action-catatan')) window.$('action-catatan').value = l.catatan || '';
+            
+            if(!window.$('action-bab-id')) {
+                 const hiddenBab = document.createElement('input');
+                 hiddenBab.type = 'hidden'; hiddenBab.id = 'action-bab-id';
+                 if(window.$('action-form')) window.$('action-form').prepend(hiddenBab);
+            }
+            if(window.$('action-bab-id')) window.$('action-bab-id').value = pendingBab || '';
+            
+            window.show(window.$('modal-action'));
+        };
+
+        window.cetakLaporanFinal = function(nis) {
+            let lap = mockDbLaporan.find(l => l.nis === nis);
+            if (!lap || !lap.konten) { window.showAlertMsg('Gagal', 'Laporan ini masih kosong. Siswa belum mengisi data laporan.'); return; }
+            
+            window.showAlertMsg('Memproses PDF', 'Sistem sedang men-generate laporan akhir. Mohon tunggu...');
+            
+            setTimeout(() => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+                // Margin Jilid: Kiri 4cm(40mm), Atas 3cm(30mm), Kanan 3cm(30mm), Bawah 3cm(30mm)
+                const marginL = 40; const marginT = 30; const marginR = 30; const marginB = 30;
+                const pageWidth = 210; const pageHeight = 297;
+                const maxW = pageWidth - marginL - marginR;
+                const center = marginL + (maxW / 2);
+                let currentY = marginT;
+                
+                const addPage = () => { doc.addPage(); currentY = marginT; };
+                const checkPageBreak = (neededSpace) => { if (currentY + neededSpace > pageHeight - marginB) { addPage(); return true; } return false; };
+                const printText = (text, x, y, options = {}) => { doc.text(text, x, y, options); };
+                const printParagraph = (text, yStart, fontStyle='normal', align='justify') => {
+                    if(!text) return yStart;
+                    doc.setFont('times', fontStyle);
+                    const lines = doc.splitTextToSize(text, maxW);
+                    let y = yStart;
+                    lines.forEach(line => {
+                        checkPageBreak(7);
+                        printText(line, marginL, y, { align: align, maxWidth: maxW });
+                        y += 6;
+                    });
+                    return y;
+                };
+
+                const s = globalDbSiswa.find(x => x.nis === nis) || {};
+                const namaSiswa = (s.nama || "NAMA SISWA").toUpperCase(); const nisSiswa = s.nis || "NIS";
+                const dudi = (s.dudi || "NAMA INSTANSI").toUpperCase(); const jurusan = (s.jurusan || "KOMPETENSI KEAHLIAN").toUpperCase();
+                const guru = s.guru || "Guru Pembimbing"; const instruktur = s.instruktur || "Instruktur DUDI";
+
+                // --- 1. COVER ---
+                doc.setFont('times', 'bold'); doc.setFontSize(14);
+                printText('LAPORAN PRAKTIK KERJA LAPANGAN (PKL)', center, currentY, { align: 'center' }); currentY += 8;
+                printText(`DI ${dudi}`, center, currentY, { align: 'center' }); currentY += 20;
+                
+                doc.setFont('times', 'normal'); doc.setFontSize(12);
+                printText('Diajukan sebagai salah satu syarat untuk mengikuti', center, currentY, { align: 'center' }); currentY += 6;
+                printText('Ujian Kompetensi Keahlian dan Ujian Sekolah', center, currentY, { align: 'center' }); currentY += 30;
+
+                doc.setDrawColor(0); doc.rect(center - 15, currentY, 30, 30); doc.setFontSize(10);
+                printText('( LOGO )', center, currentY + 16, { align: 'center' }); currentY += 50;
+
+                doc.setFontSize(12); printText('Disusun Oleh:', center, currentY, { align: 'center' }); currentY += 10;
+                doc.setFont('times', 'bold');
+                printText(namaSiswa, center, currentY, { align: 'center' }); currentY += 6;
+                printText(`NIS. ${nisSiswa}`, center, currentY, { align: 'center' }); 
+
+                doc.setFontSize(14);
+                printText('PEMERINTAH DAERAH DAERAH ISTIMEWA YOGYAKARTA', center, pageHeight - 45, { align: 'center' });
+                printText('DINAS PENDIDIKAN PEMUDA DAN OLAHRAGA', center, pageHeight - 39, { align: 'center' });
+                doc.setFontSize(16);
+                printText('SMK Ma'arif Semanu', center, pageHeight - 31, { align: 'center' });
+                doc.setFont('times', 'normal'); doc.setFontSize(11);
+                printText('Program Keahlian: ' + jurusan, center, pageHeight - 24, { align: 'center' });
+                doc.setFont('times', 'bold'); doc.setFontSize(12);
+                printText('TAHUN ' + new Date().getFullYear(), center, pageHeight - 12, { align: 'center' });
+
+                // --- 2. LEMBAR PERSETUJUAN & PENGESAHAN ---
+                addPage();
+                doc.setFontSize(14);
+                printText('LEMBAR PENGESAHAN', center, currentY, { align: 'center' }); currentY += 15;
+                doc.setFont('times', 'normal'); doc.setFontSize(12);
+                currentY = printParagraph(`Laporan Praktik Kerja Lapangan (PKL) yang disusun oleh ${s.nama} (NIS: ${s.nis}) telah diperiksa dan disetujui pada:`, currentY);
+                currentY += 5;
+                printText('Hari       : .......................................', marginL, currentY); currentY += 8;
+                printText('Tanggal : .......................................', marginL, currentY); currentY += 25;
+
+                printText('Pembimbing DUDI,', marginL, currentY);
+                printText('Guru Pembimbing,', pageWidth - marginR, currentY, {align: 'right'}); currentY += 25;
+                
+                doc.setFont('times', 'bold');
+                printText(instruktur, marginL, currentY);
+                printText(guru, pageWidth - marginR, currentY, {align: 'right'});
+                doc.setFont('times', 'normal'); currentY += 6;
+                printText('NIK. ..........................', marginL, currentY);
+                printText('NIP. ..........................', pageWidth - marginR, currentY, {align: 'right'}); currentY += 20;
+
+                printText('Mengetahui,', center, currentY, { align: 'center' }); currentY += 6;
+                doc.setFont('times', 'bold');
+                printText('Kepala SMK Ma'arif Semanu', center, currentY, { align: 'center' }); currentY += 30;
+                printText('Yani Rismawati, S.Pd. Si.', center, currentY, { align: 'center' }); currentY += 6;
+                doc.setFont('times', 'normal');
+                printText('NIP. 19800101 200501 1 001', center, currentY, { align: 'center' });
+
+                // --- 3. KATA PENGANTAR ---
+                addPage();
+                doc.setFont('times', 'bold'); doc.setFontSize(14);
+                printText('KATA PENGANTAR', center, currentY, { align: 'center' }); currentY += 15;
+                doc.setFontSize(12);
+                currentY = printParagraph(lap.konten.kata_pengantar, currentY, 'normal', 'justify');
+
+                // --- 4. DAFTAR ISI SESUAI GAMBAR ---
+                addPage();
+                doc.setFont('times', 'bold'); doc.setFontSize(14);
+                printText('DAFTAR ISI', center, currentY, { align: 'center' }); currentY += 15;
+                doc.setFont('times', 'normal'); doc.setFontSize(12);
+                
+                const toc = [
+                    {t: 'HALAMAN JUDUL', i: 0, p:'i'}, {t: 'LEMBAR PERSETUJUAN', i: 0, p:'ii'}, {t: 'LEMBAR PENGESAHAN', i: 0, p:'iii'}, 
+                    {t: 'KATA PENGANTAR', i: 0, p:'iv'}, {t: 'DAFTAR ISI', i: 0, p:'v'},
+                    {t: 'BAB I PENDAHULUAN', i: 0, p:'1'},
+                    {t: 'A. Latar Belakang Praktik Kerja Lapangan', i: 10, p:'1'}, {t: 'B. Tujuan Praktik Kerja Lapangan', i: 10, p:'2'}, {t: 'C. Manfaat Praktik Kerja Lapangan', i: 10, p:'2'},
+                    {t: 'BAB II URAIAN UMUM DUDI', i: 0, p:'3'},
+                    {t: 'A. Sejarah DUDI', i: 10, p:'3'}, {t: 'B. Struktur Organisasi DUDI', i: 10, p:'4'}, {t: 'C. Lokasi DUDI', i: 10, p:'5'}, {t: 'D. Produk/Pelayanan DUDI', i: 10, p:'5'},
+                    {t: 'BAB III PEMBAHASAN', i: 0, p:'6'},
+                    {t: 'A. Dasar Teori', i: 10, p:'6'}, {t: 'B. Implementasi Dasar Teori Di DUDI', i: 10, p:'7'},
+                    {t: 'BAB IV PENUTUP', i: 0, p:'10'},
+                    {t: 'A. Kesimpulan', i: 10, p:'10'}, {t: 'B. Saran', i: 10, p:'11'},
+                    {t: 'DAFTAR PUSTAKA', i: 0, p:'12'}, {t: 'LAMPIRAN', i: 0, p:'13'}
+                ];
+
+                toc.forEach(item => {
+                    checkPageBreak(10);
+                    printText(item.t, marginL + item.i, currentY);
+                    let dotX = marginL + item.i + doc.getTextWidth(item.t) + 3;
+                    let endX = pageWidth - marginR - 10;
+                    if(dotX < endX) { doc.setTextColor(150); printText('.'.repeat(Math.floor((endX - dotX)/1.5)), dotX, currentY); doc.setTextColor(0); }
+                    printText(item.p, pageWidth - marginR, currentY, {align: 'right'});
+                    currentY += 8;
+                });
+
+                // --- 5. ISI BAB (I, II, III, IV) & Pustaka ---
+                const babList = [
+                    { t1: 'BAB I', t2: 'PENDAHULUAN', subs: [{l: 'A. Latar Belakang Praktik Kerja Lapangan', id: 'bab1_a'}, {l: 'B. Tujuan Praktik Kerja Lapangan', id: 'bab1_b'}, {l: 'C. Manfaat Praktik Kerja Lapangan', id: 'bab1_c'}] },
+                    { t1: 'BAB II', t2: 'URAIAN UMUM DUDI', subs: [{l: 'A. Sejarah DUDI', id: 'bab2_a'}, {l: 'B. Struktur Organisasi DUDI', id: 'bab2_b'}, {l: 'C. Lokasi DUDI', id: 'bab2_c'}, {l: 'D. Produk/Pelayanan DUDI', id: 'bab2_d'}] },
+                    { t1: 'BAB III', t2: 'PEMBAHASAN', subs: [{l: 'A. Dasar Teori', id: 'bab3_a'}, {l: 'B. Implementasi Dasar Teori Di DUDI', id: 'bab3_b'}] },
+                    { t1: 'BAB IV', t2: 'PENUTUP', subs: [{l: 'A. Kesimpulan', id: 'bab4_a'}, {l: 'B. Saran', id: 'bab4_b'}] }
+                ];
+
+                babList.forEach(bab => {
+                    addPage();
+                    doc.setFont('times', 'bold'); doc.setFontSize(14);
+                    printText(bab.t1, center, currentY, { align: 'center' }); currentY += 8;
+                    printText(bab.t2, center, currentY, { align: 'center' }); currentY += 15;
+                    
+                    doc.setFontSize(12);
+                    bab.subs.forEach(sub => {
+                        doc.setFont('times', 'bold');
+                        printText(sub.l, marginL, currentY); currentY += 8;
+                        currentY = printParagraph(lap.konten[sub.id] || '-', currentY, 'normal', 'justify'); currentY += 8;
+                    });
+                });
+
+                // Pustaka
+                addPage();
+                doc.setFont('times', 'bold'); doc.setFontSize(14);
+                printText('DAFTAR PUSTAKA', center, currentY, { align: 'center' }); currentY += 15;
+                doc.setFontSize(12);
+                currentY = printParagraph(lap.konten.pustaka || '-', currentY);
+
+                // --- 6. LAMPIRAN (Auto Generate Tabel Jurnal) ---
+                addPage();
+                doc.setFont('times', 'bold'); doc.setFontSize(14);
+                printText('LAMPIRAN', center, currentY, { align: 'center' }); currentY += 15;
+                
+                doc.setFontSize(12);
+                printText('Lampiran 1: Rekapitulasi Jurnal Harian Peserta', marginL, currentY); currentY += 10;
+
+                const myJurnal = mockDbJurnal.filter(j => j.nis === nis).sort((a,b)=>a.id - b.id);
+                let tableData = myJurnal.map((j, i) => [i+1, j.tanggal, j.kegiatan, j.catatan||'-']);
+                if(tableData.length === 0) tableData = [['-', '-', 'Belum ada data jurnal yang dientri', '-']];
+
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['No', 'Tanggal', 'Uraian Kegiatan / Pekerjaan', 'Catatan Pembimbing']],
+                    body: tableData,
+                    theme: 'grid',
+                    margin: { left: marginL, right: marginR },
+                    styles: { font: 'times', fontSize: 10, cellPadding: 3, textColor: 0, lineColor: 0, lineWidth: 0.1 },
+                    headStyles: { fillColor: 240, textColor: 0, fontStyle: 'bold', halign: 'center' },
+                    columnStyles: { 0: {halign: 'center', cellWidth: 10}, 1: {cellWidth: 25} }
+                });
+
+                window.closeAlertModal();
+                doc.save(`Laporan_PKL_${nisSiswa}_${s.nama.replace(/\s+/g, '_')}.pdf`);
+
+            }, 1500); 
+        };
+
+        // --- 10. MODULE: JADWAL & DOKUMENTASI ---
+        window.renderJadwal = function() {
+            if(currentUser.role==='Admin') { window.show(window.$('btn-add-jadwal')); window.show(window.$('btn-add-serentak')); window.show(document.querySelector('#sec-jadwal_monitoring .guru-col')); document.querySelectorAll('.aksi-col').forEach(window.show); }
+            else if(currentUser.role==='Guru Pembimbing') { window.hide(window.$('btn-add-jadwal')); window.hide(window.$('btn-add-serentak')); window.hide(document.querySelector('#sec-jadwal_monitoring .guru-col')); document.querySelectorAll('.aksi-col').forEach(window.show); }
+            else { window.hide(window.$('btn-add-jadwal')); window.hide(window.$('btn-add-serentak')); window.show(document.querySelector('#sec-jadwal_monitoring .guru-col')); document.querySelectorAll('.aksi-col').forEach(window.hide); }
+
+            let arr = globalDbJadwalMonitoring;
+            if(currentUser.role==='Guru Pembimbing') arr = arr.filter(j=>j.guru === currentUser.name);
+
+            if(window.$('tbody-jadwal')) {
+                window.$('tbody-jadwal').innerHTML = arr.map((j,i) => `<tr class="hover:bg-slate-50 border-b"><td class="px-4 py-3 text-center">${i+1}</td><td class="px-4 py-3"><p class="font-bold">${j.tanggal}</p><p class="text-xs text-slate-500">${j.dudi}</p></td>${currentUser.role!=='Guru Pembimbing' ? `<td class="px-4 py-3 text-sm">${j.guru}</td>` : ''}<td class="px-4 py-3 text-sm">${j.agenda}</td><td class="px-4 py-3 text-xs italic">${j.catatan || '-'}</td><td class="px-4 py-3 text-center"><span class="text-[11px] px-2.5 py-1 rounded-full border font-semibold ${j.status==='Selesai'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}">${j.status}</span></td>${(currentUser.role==='Admin' || currentUser.role==='Guru Pembimbing') ? `<td class="px-4 py-3 text-center flex justify-center gap-1.5">${currentUser.role==='Admin' ? `<button onclick="window.editJadwal(${j.id})" class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-md"><i data-feather="edit" class="w-4 h-4"></i></button><button onclick="window.delJadwal(${j.id})" class="p-1.5 text-red-600 hover:bg-red-100 rounded-md"><i data-feather="trash-2" class="w-4 h-4"></i></button>` : (j.status==='Belum' ? `<button onclick="window.uploadBuktiJadwal(${j.id})" class="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-md whitespace-nowrap">Upload</button>` : `<i data-feather="check-circle" class="w-5 h-5 text-emerald-500"></i>`)}</td>` : ''}</tr>`).join('') || '<tr><td colspan="7" class="text-center py-6">Belum ada jadwal.</td></tr>';
+            }
+            if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.editJadwal = function(id) {
+            const j = globalDbJadwalMonitoring.find(x=>x.id===id);
+            if(window.$('modal-form-title')) window.$('modal-form-title').innerHTML = '<i data-feather="edit" class="w-5 h-5 text-indigo-500"></i> Edit Jadwal';
+            if(window.$('modal-form-type')) window.$('modal-form-type').value = 'edit_jadwal'; if(window.$('modal-form-id')) window.$('modal-form-id').value = id;
+            if(window.$('modal-form-body')) window.$('modal-form-body').innerHTML = `<div><label class="block text-xs font-medium mb-1">DUDI</label><input type="text" id="j-dudi" value="${j.dudi}" required class="w-full px-3 py-2 border rounded outline-none"></div><div><label class="block text-xs font-medium mb-1">Tanggal</label><input type="date" id="j-tgl" value="${j.tanggal}" required class="w-full px-3 py-2 border rounded outline-none"></div><div><label class="block text-xs font-medium mb-1">Guru</label><input type="text" id="j-guru" value="${j.guru}" required class="w-full px-3 py-2 border rounded outline-none"></div><div><label class="block text-xs font-medium mb-1">Agenda</label><input type="text" id="j-agenda" value="${j.agenda}" required class="w-full px-3 py-2 border rounded outline-none"></div>`;
+            const footer = window.$('generic-form')?.querySelector('.border-t'); if(footer) footer.classList.remove('hide'); window.show(window.$('modal-form')); if (typeof feather !== 'undefined') feather.replace();
+        };
+        
+        window.delJadwal = function(id) { window.showConfirm('Hapus Jadwal?', 'Tindakan permanen.', () => { globalDbJadwalMonitoring = globalDbJadwalMonitoring.filter(x=>x.id!==id); window.renderJadwal(); }); };
+        
+        window.uploadBuktiJadwal = function(id) {
+            if(window.$('modal-form-title')) window.$('modal-form-title').innerHTML = '<i data-feather="camera" class="w-5 h-5 text-indigo-500"></i> Upload Bukti';
+            if(window.$('modal-form-type')) window.$('modal-form-type').value = 'upload_jadwal'; if(window.$('modal-form-id')) window.$('modal-form-id').value = id;
+            if(window.$('modal-form-body')) window.$('modal-form-body').innerHTML = `<div><label class="block text-sm font-medium mb-1">Upload Foto</label><input type="file" required class="w-full px-3 py-2 border rounded-lg text-sm bg-slate-50"></div><div><label class="block text-sm font-medium mb-1 mt-3">Catatan Lapangan</label><textarea id="j-catatan-bukti" rows="3" class="w-full px-3 py-2 border rounded-lg text-sm" required></textarea></div>`;
+            const footer = window.$('generic-form')?.querySelector('.border-t'); if(footer) footer.classList.remove('hide'); window.show(window.$('modal-form')); if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.renderDokumentasi = function() {
+            const grid = window.$('grid-dokumentasi');
+            const search = window.$('search-dok') ? window.$('search-dok').value.toLowerCase() : '';
+            const filter = window.$('filter-dok') ? window.$('filter-dok').value : '';
+            
+            const filteredData = globalDbDokumentasi.filter(d => {
+                return (`${d.title} ${d.uploader} ${d.catatan}`.toLowerCase().includes(search) && (filter === '' || d.type === filter));
+            });
+            
+            if(grid) {
+                grid.innerHTML = filteredData.map(d => `<div onclick="window.viewDetailDokumentasi(${d.id})" class="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col group cursor-pointer hover:border-indigo-300"><div class="relative h-32 sm:h-40 overflow-hidden bg-slate-100"><img src="${d.img}" class="w-full h-full object-cover group-hover:scale-105 transition-transform"><div class="absolute inset-0 bg-slate-900/10 group-hover:bg-slate-900/0"></div></div><div class="p-3 border-t bg-slate-50"><p class="text-xs font-bold line-clamp-1">${d.title}</p><p class="text-[10px] font-medium text-slate-500 mt-0.5"><i data-feather="calendar" class="w-3 h-3 inline"></i> ${window.getFormattedDate(d.tanggal)}</p></div></div>`).join('') || `<div class="col-span-full py-12 text-center text-slate-500"><i data-feather="image" class="w-10 h-10 mx-auto mb-3 opacity-20"></i><p>Dokumentasi kosong.</p></div>`;
+            }
+            if (typeof feather !== 'undefined') feather.replace();
+        };
+
+        window.viewDetailDokumentasi = function(id) {
+            const d = globalDbDokumentasi.find(x => x.id === id);
+            if(d) {
+                if(window.$('dok-detail-img')) window.$('dok-detail-img').src = d.img;
+                if(window.$('dok-detail-type')) window.$('dok-detail-type').textContent = d.type;
+                if(window.$('dok-detail-title')) window.$('dok-detail-title').textContent = d.title;
+                if(window.$('dok-detail-date')) window.$('dok-detail-date').textContent = window.getFormattedDate(d.tanggal);
+                if(window.$('dok-detail-catatan')) window.$('dok-detail-catatan').textContent = `"${d.catatan}"`;
+                if(window.$('dok-detail-uploader')) window.$('dok-detail-uploader').textContent = d.uploader;
+                window.show(window.$('modal-view-dok')); if (typeof feather !== 'undefined') feather.replace();
+            }
+        };
+
+        // --- 11. PENGATURAN ---
+        window.renderPengaturan = function() {
+            if(window.$('input-api-key')) window.$('input-api-key').value = localStorage.getItem('gemini_api_key') || '';
+            if(window.$('input-min-char')) window.$('input-min-char').value = window.getMinCharLimit();
+            
+            const roles = ['Admin', 'Kepala Sekolah', 'Guru Pembimbing', 'Wali Kelas', 'Siswa'];
+            if(window.$('thead-rbac')) window.$('thead-rbac').innerHTML = `<tr><th class="px-6 py-4 font-semibold w-48 sticky left-0 bg-white">Modul / Menu</th>${roles.map(r=>`<th class="px-4 py-4 font-semibold text-center">${r}</th>`).join('')}</tr>`;
+            if(window.$('tbody-rbac')) window.$('tbody-rbac').innerHTML = roleAccess.map(m => `<tr class="border-b hover:bg-slate-50"><td class="px-6 py-4 font-medium text-slate-700 sticky left-0 bg-white">${m.label}</td>${roles.map(r => `<td class="px-4 py-4 text-center"><input type="checkbox" onchange="window.toggleRbac('${m.menuId}', '${r}', this.checked)" ${m.access.includes(r)?'checked':''} ${r==='Admin'&&m.menuId==='pengaturan'?'disabled':''} class="w-4 h-4 text-indigo-600 rounded"></td>`).join('')}</tr>`).join('');
+        };
+        window.toggleRbac = function(menuId, role, isChecked) {
+            const menu = roleAccess.find(m => m.menuId === menuId);
+            if(menu) {
+                if(isChecked && !menu.access.includes(role)) menu.access.push(role);
+                else if(!isChecked) menu.access = menu.access.filter(r => r !== role);
+            }
+        };
+        window.savePengaturan = function() { window.buildSidebar(); window.showAlertMsg('Berhasil', 'Matriks Hak Akses (RBAC) berhasil disimpan.'); };
+
+        window.saveLaporanSetting = function() {
+            const val = window.$('input-min-char').value;
+            localStorage.setItem('sipkl_min_char', val);
+            window.showAlertMsg('Tersimpan', `Batas minimal laporan berhasil diatur menjadi ${val} karakter.`);
+        };
+
+        window.saveApiKey = function() {
+            const key = window.$('input-api-key').value.trim();
+            localStorage.setItem('gemini_api_key', key);
+            window.showAlertMsg('Tersimpan', 'API Key Google Gemini berhasil disimpan ke memori lokal.');
+        };
+
+        // --- EVENT BINDINGS (Sistem Pengaman / Null Checker) ---
+        function bindEventSafe(id, event, callback) {
+            const el = window.$(id); if(el) el.addEventListener(event, callback);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            bindEventSafe('login-form', 'submit', window.login);
+            bindEventSafe('btn-logout', 'click', window.logout);
+            bindEventSafe('toggle-password', 'click', () => { 
+                const inp = window.$('login-password'); 
+                if(inp) {
+                    if(inp.type === 'password') { inp.type = 'text'; window.$('toggle-password').innerHTML = '<i data-feather="eye-off" class="w-5 h-5"></i>'; } 
+                    else { inp.type = 'password'; window.$('toggle-password').innerHTML = '<i data-feather="eye" class="w-5 h-5"></i>'; } 
+                    if (typeof feather !== 'undefined') feather.replace(); 
+                }
+            });
+
+            bindEventSafe('generic-form', 'submit', (e) => {
+                e.preventDefault();
+                const type = window.$('modal-form-type')?window.$('modal-form-type').value:'';
+                if(type==='add_jadwal') { globalDbJadwalMonitoring.push({id:Date.now(), dudi:window.$('j-dudi').value, tanggal:window.$('j-tgl').value, guru:window.$('j-guru').value, agenda:window.$('j-agenda').value, status:'Belum', catatan:''}); window.renderJadwal(); window.hide(window.$('modal-form')); }
+                if(type==='add_jadwal_serentak') { 
+                    const tgl = window.$('js-tgl').value; const agenda = window.$('js-agenda').value;
+                    const u = []; globalDbSiswa.forEach(s => { if(!u.find(x => x.dudi === s.dudi && x.guru === s.guru)) u.push({ dudi: s.dudi, guru: s.guru }); });
+                    u.forEach((item, index) => { globalDbJadwalMonitoring.push({ id: Date.now() + index, dudi: item.dudi, tanggal: tgl, guru: item.guru, agenda: agenda, status: 'Belum', catatan: '' }); });
+                    window.renderJadwal(); window.hide(window.$('modal-form')); window.showAlertMsg('Berhasil', `Jadwal serentak dibuat untuk ${u.length} DUDI.`);
+                }
+                if(type==='edit_jadwal') { const j = globalDbJadwalMonitoring.find(x=>x.id==parseInt(window.$('modal-form-id').value)); j.dudi=window.$('j-dudi').value; j.tanggal=window.$('j-tgl').value; j.guru=window.$('j-guru').value; j.agenda=window.$('j-agenda').value; window.renderJadwal(); window.hide(window.$('modal-form')); }
+                if(type==='upload_jadwal') { 
+                    const j = globalDbJadwalMonitoring.find(x=>x.id==parseInt(window.$('modal-form-id').value)); j.status='Selesai'; j.catatan=window.$('j-catatan-bukti').value; 
+                    globalDbDokumentasi.unshift({ id: Date.now(), type: 'Monitoring', title: `Monitoring: ${j.dudi}`, uploader: j.guru, tanggal: new Date().toISOString().split('T')[0], catatan: j.catatan, img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&auto=format&fit=crop&q=60' });
+                    window.renderJadwal(); window.hide(window.$('modal-form')); window.showAlertMsg('Berhasil', 'Bukti disimpan dan masuk ke Galeri.');
+                }
+                if(type==='add_siswa') { globalDbSiswa.unshift({ id: Date.now(), nis: window.$('s-nis').value, nama: window.$('s-nama').value, jurusan: window.$('s-jurusan').value, kelas: window.$('s-kelas').value, noWa: window.$('s-nowa')?window.$('s-nowa').value:'', waliKelas: window.$('s-walas').value, guru: window.$('s-guru').value, dudi: window.$('s-dudi').value }); window.renderSiswa(); window.hide(window.$('modal-form')); }
+                if(type==='edit_siswa') { const s = globalDbSiswa.find(x=>x.id==parseInt(window.$('modal-form-id').value)); s.nis = window.$('s-nis').value; s.nama = window.$('s-nama').value; s.jurusan = window.$('s-jurusan').value; s.kelas = window.$('s-kelas').value; s.waliKelas = window.$('s-walas').value; s.guru = window.$('s-guru').value; s.dudi = window.$('s-dudi').value; window.renderSiswa(); window.hide(window.$('modal-form')); }
+                if(type==='import_siswa') { const btn = window.$('generic-form').querySelector('button[type="submit"]'); const origText = btn.textContent; btn.textContent = 'Memproses...'; setTimeout(() => { window.showAlertMsg('Berhasil!', 'Data diimpor.'); btn.textContent = origText; window.hide(window.$('modal-form')); }, 800); }
+            });
+
+            bindEventSafe('action-form', 'submit', (e) => {
+                e.preventDefault();
+                const type = window.$('action-type')?window.$('action-type').value:''; 
+                const id = parseInt(window.$('action-id').value);
+                
+                if(type==='jurnal') { 
+                    const j = mockDbJurnal.find(x=>x.id===id); 
+                    j.status = window.$('action-status').value; 
+                    j.catatan = window.$('action-catatan').value; 
+                    window.filterJurnal(); 
+                }
+                if(type==='laporan') { 
+                    const l = mockDbLaporan.find(x=>x.id===id); 
+                    const babId = window.$('action-bab-id') ? window.$('action-bab-id').value : '';
+                    const status = window.$('action-status').value;
+
+                    if(babId && l.chapterStatus) {
+                        l.chapterStatus[babId] = status;
+                        let allAcc = true; let hasWaiting = false; let hasRevisi = false;
+                        laporanStructure.forEach(ch => {
+                            let st = l.chapterStatus[ch.id];
+                            if(st !== 'Disetujui') allAcc = false;
+                            if(st === 'Menunggu') hasWaiting = true;
+                            if(st === 'Revisi') hasRevisi = true;
+                        });
+                        
+                        if(allAcc) l.status = 'Disetujui';
+                        else if(hasRevisi) l.status = 'Revisi';
+                        else if(hasWaiting) l.status = 'Menunggu';
+                        else l.status = 'Proses Pengerjaan';
+                    } else {
+                        l.status = status; 
+                    }
+                    l.catatan = window.$('action-catatan').value; 
+                    window.renderLaporan(); 
+                }
+                window.hide(window.$('modal-action'));
+            });
+
+            bindEventSafe('form-add-jurnal', 'submit', (e) => {
+                e.preventDefault();
+                const kegiatan = window.$('input-kegiatan-jurnal').value;
+                mockDbJurnal.unshift({ id: Date.now(), tanggal: new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}), nis: currentUser.nis, nama: currentUser.name, kegiatan: kegiatan, status: 'Menunggu', catatan: '' });
+                window.$('form-add-jurnal').reset(); window.hide(window.$('form-add-jurnal-container')); window.filterJurnal();
+                window.showAlertMsg('Berhasil', 'Jurnal hari ini telah disimpan.');
+            });
+
+            bindEventSafe('form-izin', 'submit', (e) => {
+                e.preventDefault();
+                const wali = globalDbSiswa.find(s=>s.nis===currentUser.nis)?.waliKelas || 'Wali Kelas';
+                mockDbPengajuanIzin.unshift({ id: Date.now(), nis: currentUser.nis, nama: currentUser.name, tanggal: new Date().toLocaleDateString('id-ID'), alasan: window.$('izin-alasan').value, tipe: window.$('izin-tipe').value, status: 'Menunggu Persetujuan', waliKelas: wali });
+                window.$('form-izin').reset(); window.renderPresensi(); window.open(`https://api.whatsapp.com/send?phone=628000000&text=Halo%20Bapak/Ibu%20Wali%20Kelas,%20Saya%20${currentUser.name}%20mengajukan%20izin.`, '_blank');
+            });
+            
+            // Camera Bindings
+            bindEventSafe('btn-start-cam', 'click', window.startCamera);
+            bindEventSafe('btn-capture', 'click', () => { window.hide(window.$('presensi-video')); window.show(window.$('presensi-photo-preview')); if(window.$('presensi-photo-preview')) window.$('presensi-photo-preview').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"; window.hide(window.$('btn-capture')); window.show(window.$('btn-submit-hadir')); window.show(window.$('btn-retake')); });
+            bindEventSafe('btn-retake', 'click', () => { window.hide(window.$('presensi-photo-preview')); window.show(window.$('presensi-video')); window.hide(window.$('btn-submit-hadir')); window.hide(window.$('btn-retake')); window.show(window.$('btn-capture')); });
+            bindEventSafe('btn-submit-hadir', 'click', () => { mockDbPresensi.unshift({ id: Date.now(), nis: currentUser.nis, nama: currentUser.name, tanggal: new Date().toLocaleDateString('id-ID'), jam: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+' WIB', lokasi: 'Lat/Lng: '+(window.$('gps-text')?window.$('gps-text').textContent:''), status: 'Hadir' }); window.stopCamera(); window.renderPresensi(); });
+
+            // Inputs Bindings
+            bindEventSafe('search-siswa', 'input', window.renderSiswa);
+            bindEventSafe('search-dok', 'input', window.renderDokumentasi);
+            bindEventSafe('filter-dok', 'change', window.renderDokumentasi);
+            bindEventSafe('search-jurnal', 'input', window.filterJurnal);
+            bindEventSafe('filter-date-jurnal', 'change', window.filterJurnal);
+            bindEventSafe('filter-date-absensi', 'change', window.filterAbsensi);
+            bindEventSafe('search-absensi', 'input', window.filterAbsensi);
+            bindEventSafe('filter-status-absensi', 'change', window.filterAbsensi);
+
+            document.querySelectorAll('.modal-close').forEach(btn => { btn.onclick = () => { window.hide(window.$('modal-form')); window.hide(window.$('modal-view-jurnal')); window.hide(window.$('modal-action')); window.hide(window.$('modal-edit-bab')); }; });
+            document.querySelectorAll('.modal-close-dok').forEach(btn => { btn.onclick = () => window.hide(window.$('modal-view-dok')); });
+
+            window.applySidebarState = function() {
+                const sidebar = window.$('sidebar'); const headerBrand = window.$('header-brand');
+                if (window.innerWidth >= 768) {
+                    if(sidebar && !sidebar.classList.contains('-translate-x-full')) { sidebar.classList.remove('md:-ml-64'); if (headerBrand) { headerBrand.classList.add('hidden'); headerBrand.classList.remove('flex'); } } 
+                    else { if (sidebar) sidebar.classList.add('md:-ml-64'); if (headerBrand) { headerBrand.classList.remove('hidden'); headerBrand.classList.add('flex'); } }
+                } else {
+                    if (headerBrand) { headerBrand.classList.remove('hidden'); headerBrand.classList.add('flex'); }
+                }
+            };
+            
+            window.addEventListener('resize', window.applySidebarState);
+            bindEventSafe('toggle-sidebar', 'click', () => { 
+                const s = window.$('sidebar');
+                if (window.innerWidth >= 768) { if(s) { if(s.classList.contains('-translate-x-full')) s.classList.remove('-translate-x-full'); else s.classList.toggle('-translate-x-full'); } window.applySidebarState(); } 
+                else { if(s) s.classList.remove('-translate-x-full'); window.show(window.$('mobile-overlay')); }
+            });
+            bindEventSafe('close-sidebar', 'click', () => { if(window.$('sidebar')) window.$('sidebar').classList.add('-translate-x-full'); window.hide(window.$('mobile-overlay')); });
+            bindEventSafe('mobile-overlay', 'click', () => { if(window.$('sidebar')) window.$('sidebar').classList.add('-translate-x-full'); window.hide(window.$('mobile-overlay')); });
+
+            if (window.$('current-date-display')) window.$('current-date-display').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            if (typeof feather !== 'undefined') feather.replace();
+        });
+    </script>
+</body>
+</html>
